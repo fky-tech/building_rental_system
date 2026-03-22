@@ -1,0 +1,141 @@
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/Button'
+import { Plus, CheckCircle, X } from 'lucide-react'
+import { createRoomAction } from './actions'
+import { useRouter } from 'next/navigation'
+
+type BuildingOption = {
+  id: string
+  name: string
+}
+
+export function AddRoomModal({ buildings }: { buildings: BuildingOption[] }) {
+  const [open, setOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState(false)
+  const router = useRouter()
+
+  const handleClose = () => {
+    setOpen(false)
+    setTimeout(() => {
+      setError(null)
+      setLoading(false)
+      setSuccess(false)
+    }, 200)
+  }
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    const formData = new FormData(e.currentTarget)
+    const result = await createRoomAction(null, formData)
+    
+    if (result.success) {
+      setSuccess(true)
+      setLoading(false)
+      router.refresh()
+    } else {
+      setError(result.error || 'Failed to create room')
+      setLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <Button size="md" variant="primary" onClick={() => setOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Add Room
+      </Button>
+
+      {open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative my-8">
+            <div className="flex justify-between items-center mb-4 border-b pb-3">
+               <h2 className="text-xl font-semibold text-gray-900">
+                 {success ? 'Room Added Successfully' : 'Add New Room'}
+               </h2>
+               <button onClick={handleClose} type="button" className="text-gray-400 hover:text-gray-500">
+                 <X className="h-6 w-6" />
+               </button>
+            </div>
+             
+            {success ? (
+               <div className="space-y-6 py-4 text-center">
+                  <div className="flex flex-col items-center justify-center space-y-3">
+                    <div className="h-12 w-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
+                       <CheckCircle className="h-8 w-8" />
+                    </div>
+                    <p className="text-gray-600">
+                       Room created successfully. You can now manage it from the rooms list.
+                    </p>
+                  </div>
+                  <div className="pt-4 border-t flex justify-end">
+                      <Button variant="primary" onClick={handleClose}>Done</Button>
+                  </div>
+               </div>
+            ) : (
+             <form onSubmit={onSubmit} className="space-y-4">
+                {error && (
+                  <div className="p-3 bg-red-50 text-red-800 text-sm rounded-md border border-red-100">
+                    {error}
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                        <label htmlFor="building_id" className="block text-sm font-medium text-gray-700 mb-1">Select Building</label>
+                        <select id="building_id" name="building_id" required className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                          <option value="">Choose a building...</option>
+                          {buildings.map(b => (
+                            <option key={b.id} value={b.id}>{b.name}</option>
+                          ))}
+                        </select>
+                    </div>
+
+                    <div className="col-span-2 md:col-span-1">
+                        <label htmlFor="room_number" className="block text-sm font-medium text-gray-700 mb-1">Room Number</label>
+                        <input id="room_number" name="room_number" type="text" required placeholder="e.g. 101A" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                    </div>
+                    
+                    <div className="col-span-2 md:col-span-1">
+                        <label htmlFor="floor_number" className="block text-sm font-medium text-gray-700 mb-1">Floor Number</label>
+                        <input id="floor_number" name="floor_number" type="number" placeholder="1" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                    </div>
+
+                    <div className="col-span-2 md:col-span-1">
+                        <label htmlFor="room_type" className="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+                        <select id="room_type" name="room_type" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500 bg-white">
+                          <option value="office">Office</option>
+                          <option value="shop">Shop</option>
+                        </select>
+                    </div>
+
+                    <div className="col-span-2 md:col-span-1">
+                        <label htmlFor="rent_amount" className="block text-sm font-medium text-gray-700 mb-1">Monthly Rent ($)</label>
+                        <input id="rent_amount" name="rent_amount" type="number" step="0.01" required placeholder="500.00" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                    </div>
+
+                    <div className="col-span-2">
+                        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="description" name="description" rows={3} placeholder="Additional details..." className="w-full rounded-md border border-gray-300 p-3 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                </div>
+
+                <div className="pt-4 flex justify-end space-x-2 border-t border-gray-100 mt-6">
+                    <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Cancel</Button>
+                    <Button type="submit" variant="primary" disabled={loading}>
+                      {loading ? 'Adding Room...' : 'Add Room'}
+                    </Button>
+                </div>
+             </form>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
