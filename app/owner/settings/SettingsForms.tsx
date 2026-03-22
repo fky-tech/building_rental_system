@@ -70,7 +70,7 @@ export function SettingsForms({ profile, email }: { profile: Profile, email: str
             </div>
           )}
           <Input label="Full Name" name="full_name" defaultValue={profile.full_name} required />
-          <Input label="Email" type="email" defaultValue={email} disabled />
+          <Input label="Email" name="email" type="email" defaultValue={email} required />
           <Input label="Phone Number" name="phone" defaultValue={profile.phone || ''} placeholder="+251 ..." />
           <Button type="submit" variant="primary" disabled={profileLoading}>
             {profileLoading ? 'Saving...' : 'Save Changes'}

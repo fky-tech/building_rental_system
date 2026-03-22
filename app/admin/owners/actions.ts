@@ -112,3 +112,59 @@ export async function updateOwnerStatusAction(id: string, status: 'active' | 'in
     return { success: false, error: 'Failed to update owner status.' }
   }
 }
+
+export async function updateOwnerAction(id: string, formData: FormData) {
+  try {
+    const fullName = formData.get('full_name') as string
+    const phone = formData.get('phone') as string
+    
+    if (!fullName) return { success: false, error: 'Full name is required' }
+    
+    const supabaseAdmin = createAdminClient()
+    
+    // Get the owner record to find user_id
+    const { data: owner } = await supabaseAdmin.from('owners').select('user_id').eq('id', id).single()
+    if (!owner) throw new Error('Owner not found')
+    
+    const { error } = await supabaseAdmin
+      .from('profiles')
+      .update({
+        full_name: fullName,
+        phone: phone || null
+      })
+      .eq('id', owner.user_id)
+      
+    if (error) throw error
+    
+    revalidatePath('/admin/owners')
+    return { success: true, message: 'Owner profile updated successfully' }
+  } catch (err: any) {
+    console.error('Error updating owner:', err)
+    return { success: false, error: err.message || 'Failed to update owner' }
+  }
+}
+
+export async function deleteOwnerAction(id: string) {
+  try {
+    if (!id) return { success: false, error: 'Owner ID is required' }
+    
+    const supabaseAdmin = createAdminClient()
+    
+    // 1. Get owner data
+    const { data: owner } = await supabaseAdmin.from('owners').select('user_id').eq('id', id).single()
+    if (!owner) throw new Error('Owner not found')
+    
+    // 2. Auth Delete (Cascades to profile/owner if FK set, but we handle it just in case)
+    const { error: authError } = await supabaseAdmin.auth.admin.deleteUser(owner.user_id)
+    if (authError) throw authError
+    
+    // Note: Database triggers/FKs should handle the rest, but we revalidate manually
+    revalidatePath('/admin/owners')
+    revalidatePath('/admin/buildings')
+    
+    return { success: true, message: 'Owner and all associated data removed' }
+  } catch (err: any) {
+    console.error('Error deleting owner:', err)
+    return { success: false, error: err.message || 'Failed to delete owner' }
+  }
+}

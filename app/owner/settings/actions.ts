@@ -7,6 +7,7 @@ export async function updateProfileAction(prevState: any, formData: FormData) {
   try {
     const full_name = formData.get('full_name') as string
     const phone = formData.get('phone') as string
+    const email = formData.get('email') as string
 
     if (!full_name) return { success: false, error: 'Full name is required' }
 
@@ -14,6 +15,16 @@ export async function updateProfileAction(prevState: any, formData: FormData) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return { success: false, error: 'Not authenticated' }
 
+    // 1. Update Auth Email if changed
+    if (email && email !== user.email) {
+      const { error: authError } = await supabase.auth.updateUser({ email })
+      if (authError) {
+        console.error('Error updating auth email:', authError)
+        return { success: false, error: authError.message }
+      }
+    }
+
+    // 2. Update Profile
     const { error } = await supabase
       .from('profiles')
       .update({ 
@@ -28,7 +39,12 @@ export async function updateProfileAction(prevState: any, formData: FormData) {
     }
 
     revalidatePath('/owner/settings')
-    return { success: true, message: 'Profile updated successfully' }
+    return { 
+      success: true, 
+      message: email !== user.email 
+        ? 'Profile updated. Please check your NEW email for a verification link to complete the email change.' 
+        : 'Profile updated successfully' 
+    }
   } catch (err: any) {
     console.error('Unexpected error updating profile:', err)
     return { success: false, error: err.message || 'An unexpected error occurred' }

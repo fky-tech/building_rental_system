@@ -77,6 +77,25 @@ export default async function OwnerDashboardPage() {
     room_number: l.rooms?.room_number || '?'
   })) || []
 
+  // 3. Fetch 5 most recent payments for this building
+  const { data: recentPaymentsData } = await supabase
+    .from('payments')
+    .select('*, leases!inner(rooms!inner(room_number, building_id), tenants!inner(full_name))')
+    .eq('leases.rooms.building_id', currentBuilding?.id)
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  const recentPayments = recentPaymentsData?.map(p => ({
+    id: p.id,
+    amount: p.amount,
+    date: p.payment_date,
+    status: p.status,
+    // @ts-ignore
+    tenant_name: p.leases?.tenants?.full_name || 'Unknown',
+    // @ts-ignore
+    room_number: p.leases?.rooms?.room_number || '?'
+  })) || []
+
   const stats = [
     { name: 'Total Rooms', value: totalRooms || 0, color: 'text-blue-600', bg: 'bg-blue-100', type: 'total' },
     { name: 'Occupied Rooms', value: occupiedRooms || 0, color: 'text-green-600', bg: 'bg-green-100', type: 'occupied' },
@@ -85,7 +104,11 @@ export default async function OwnerDashboardPage() {
   ]
 
   return (
-    <DashboardClient stats={stats} unpaidLeases={unpaidLeasesDetail} />
+    <DashboardClient 
+      stats={stats} 
+      unpaidLeases={unpaidLeasesDetail} 
+      recentPayments={recentPayments} 
+    />
   )
 }
 
