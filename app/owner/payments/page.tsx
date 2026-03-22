@@ -11,14 +11,42 @@ export default async function OwnerPaymentsPage() {
 
   const { data: ownerRec } = await supabase.from('owners').select('id').eq('user_id', user?.id).single()
 
-  // Fetch active leases for the payment modal dropdown
+  // Get current building from slug
+  const headersList = await (await import('next/headers')).headers()
+  const host = headersList.get('host') || ''
+  const slug = host.includes('.localhost') ? host.split('.localhost')[0] : null
+
+  const { data: currentBuilding } = await supabase
+    .from('buildings')
+    .select('id, name')
+    .eq('slug', slug)
+    .single()
+
+  // Identify who has already paid THIS month
+  const now = new Date()
+  const currentMonth = now.getMonth() + 1
+  const currentYear = now.getFullYear()
+
+  const { data: monthlyPayments } = await supabase
+    .from('payments')
+    .select('lease_id')
+    .eq('month', currentMonth)
+    .eq('year', currentYear)
+    .eq('status', 'verified')
+  
+  const paidLeaseIds = monthlyPayments?.map(p => p.lease_id).filter(Boolean) || []
+
+  // Fetch active leases for the payment modal dropdown for THIS building only
   const { data: activeLeases } = await supabase
     .from('leases')
-    .select('id, monthly_rent, rooms(room_number), tenants(full_name)')
+    .select('id, monthly_rent, rooms!inner(room_number, building_id), tenants!inner(full_name)')
     .eq('status', 'active')
-    .eq('rooms.buildings.owner_id', ownerRec?.id)
+    .eq('rooms.building_id', currentBuilding?.id)
 
-  const leasesList = activeLeases?.map(l => ({
+  // Filter out those who already paid this month
+  const unpaidLeases = activeLeases?.filter(l => !paidLeaseIds.includes(l.id)) || []
+
+  const leasesList = unpaidLeases.map(l => ({
     id: l.id,
     // @ts-ignore
     tenant_name: l.tenants?.full_name || 'Unknown',
@@ -29,8 +57,8 @@ export default async function OwnerPaymentsPage() {
 
   const { data: payments } = await supabase
     .from('payments')
-    .select('*, leases(rooms(room_number), tenants(full_name))')
-    .eq('owner_id', ownerRec?.id)
+    .select('*, leases!inner(rooms!inner(room_number, building_id), tenants!inner(full_name))')
+    .eq('leases.rooms.building_id', currentBuilding?.id)
     .order('payment_date', { ascending: false })
 
   return (

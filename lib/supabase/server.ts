@@ -3,6 +3,12 @@ import { cookies } from 'next/headers'
 
 export async function createClient() {
   const cookieStore = await cookies()
+  const headersList = await (await import('next/headers')).headers()
+  const host = headersList.get('host') || ''
+  
+  // Extract slug/subdomain for cookie isolation
+  const slug = host.includes('.localhost') ? host.split('.localhost')[0] : 'main'
+  const cookieName = `sb-${slug}-auth-token`
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,12 +24,13 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Handled by middleware
           }
         },
       },
+      cookieOptions: {
+        name: cookieName,
+      }
     }
   )
 }

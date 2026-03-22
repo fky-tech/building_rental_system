@@ -40,11 +40,50 @@ export async function createBuildingAction(prevState: any, formData: FormData) {
     }
 
     revalidatePath('/admin/buildings')
-    revalidatePath('/', 'layout') // Global revalidation to clear tenant page caches
+    revalidatePath('/', 'layout')
 
     return { success: true, message: 'Building created successfully' }
   } catch (err: any) {
     console.error('Unexpected error creating building:', err)
     return { success: false, error: err.message || 'An unexpected error occurred' }
+  }
+}
+
+export async function updateBuildingAction(prevState: any, formData: FormData) {
+  try {
+    const id = formData.get('id') as string
+    const name = formData.get('name') as string
+    const owner_id = formData.get('owner_id') as string
+    const status = formData.get('status') as string
+
+    if (!id || !name || !owner_id || !status) {
+      return { success: false, error: 'All fields are required' }
+    }
+
+    const supabase = await createClient()
+
+    // 1. Update building
+    const { error: buildingError } = await supabase
+      .from('buildings')
+      .update({ name, owner_id, status })
+      .eq('id', id)
+
+    if (buildingError) throw buildingError
+
+    // 2. Synchronize owner status
+    const { error: ownerError } = await supabase
+      .from('owners')
+      .update({ status: status === 'active' ? 'active' : 'inactive' })
+      .eq('id', owner_id)
+
+    if (ownerError) throw ownerError
+
+    revalidatePath('/admin/buildings')
+    revalidatePath('/', 'layout')
+
+    return { success: true, message: 'Building and owner status updated' }
+  } catch (err: any) {
+    console.error('Error updating building:', err)
+    return { success: false, error: 'Failed to update building.' }
   }
 }

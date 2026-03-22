@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { updateSession } from './lib/supabase/middleware'
 
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   // Update session and get user
   const { supabaseResponse, user, supabase } = await updateSession(request)
   
@@ -66,9 +66,28 @@ export async function middleware(request: NextRequest) {
      return redirectRes
   }
 
-  // Handle Subdomain Rewrite
+  // Handle Subdomain Rewrite & Isolation
   if (slug) {
-      const reservedPaths = ['/owner', '/admin', '/login', '/api', '/_next', '/auth', '/favicon.ico'];
+      // 1. Check building AND owner status
+      const { data: building } = await supabase
+          .from('buildings')
+          .select('status, owners!inner(status)')
+          .eq('slug', slug)
+          .single()
+
+      if (building && (building.status !== 'active' || (building.owners as any)?.status !== 'active')) {
+          return NextResponse.rewrite(new URL('/not-working', request.url))
+      }
+
+      // 2. Redirect root slug.localhost to /login if not authenticated (as specifically requested)
+      if (path === '/' && !user) {
+          const redirectRes = NextResponse.redirect(new URL('/login', request.url))
+          // Copy cookies from updateSession response to ensure session is maintained
+          supabaseResponse.cookies.getAll().forEach(c => redirectRes.cookies.set(c.name, c.value, c))
+          return redirectRes
+      }
+
+      const reservedPaths = ['/owner', '/admin', '/login', '/api', '/_next', '/auth', '/favicon.ico', '/not-working'];
       const isReserved = reservedPaths.some(p => path.startsWith(p));
 
       if (!isReserved) {

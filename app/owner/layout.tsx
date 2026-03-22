@@ -1,8 +1,10 @@
 import React from 'react'
 import Link from 'next/link'
-import { LayoutDashboard, Users, Building, CreditCard, BarChart, Settings, LogOut, Home, Mail } from 'lucide-react'
+import { LayoutDashboard, Users, Building, CreditCard, BarChart, Settings, LogOut, Home, Mail, Globe } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { headers } from 'next/headers'
+import { LanguageToggle } from './LanguageToggle'
 
 export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -18,6 +20,15 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
     redirect('/login')
   }
 
+  // Get slug from headers
+  const headersList = await headers()
+  const host = headersList.get('host') || ''
+  const slug = host.includes('.localhost') ? host.split('.localhost')[0] : null
+  
+  const { data: currentBuilding } = slug 
+    ? await supabase.from('buildings').select('name').eq('slug', slug).single()
+    : { data: null }
+
   const navItems = [
     { name: 'Dashboard', href: '/owner', icon: LayoutDashboard },
     { name: 'Rooms', href: '/owner/rooms', icon: Home },
@@ -31,7 +42,9 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
     <div className="min-h-screen bg-slate-50 flex">
       <aside className="w-64 bg-[#1e293b] text-white flex-col hidden md:flex h-screen sticky top-0">
         <div className="h-16 flex items-center px-6 bg-[#0f172a]">
-          <h1 className="text-xl font-bold tracking-tight text-blue-400">Owner Portal</h1>
+          <h1 className="text-xl font-bold tracking-tight text-blue-400">
+            {currentBuilding?.name || 'Owner Portal'}
+          </h1>
         </div>
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
@@ -55,12 +68,12 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0 bg-gray-50/50">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-end px-6 sticky top-0 z-10">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-gray-700">{user.email}</span>
-            <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
-              {user.email?.charAt(0).toUpperCase()}
-            </div>
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 sticky top-0 z-10">
+          <div className="flex items-center">
+             <span className="text-gray-900 font-bold text-lg">{currentBuilding?.name || 'Owner Portal'}</span>
+          </div>
+          <div className="flex items-center gap-4 text-normal">
+            <LanguageToggle />
           </div>
         </header>
         <main className="flex-1 p-8">

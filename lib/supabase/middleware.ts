@@ -6,6 +6,10 @@ export async function updateSession(request: NextRequest) {
     request,
   })
 
+  const hostname = request.headers.get("host") || request.nextUrl.hostname
+  const slug = hostname.includes('.localhost') ? hostname.split('.localhost')[0] : 'main'
+  const cookieName = `sb-${slug}-auth-token`
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -15,15 +19,18 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
           supabaseResponse = NextResponse.next({
             request,
           })
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(name, value, options)
-          )
+          })
         },
       },
+      cookieOptions: {
+        name: cookieName,
+      }
     }
   )
 

@@ -89,24 +89,32 @@ export function AddPaymentModal({ leases }: { leases: LeaseOption[] }) {
                 
                 <div className="grid grid-cols-2 gap-4">
                     <div className="col-span-2">
-                        <label htmlFor="lease_id" className="block text-sm font-medium text-gray-700 mb-1">Assign to Lease (Optional)</label>
+                        <label htmlFor="lease_id" className="block text-sm font-medium text-gray-700 mb-1">Select Unpaid Tenant</label>
                         <select 
                           id="lease_id" 
                           name="lease_id" 
+                          required
                           className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500 bg-white"
                           onChange={(e) => {
                             const lease = leases.find(l => l.id === e.target.value);
                             if (lease) {
                               const amountInput = document.getElementById('amount') as HTMLInputElement;
+                              const roomDisplay = document.getElementById('room_display') as HTMLInputElement;
                               if (amountInput) amountInput.value = lease.monthly_rent.toString();
+                              if (roomDisplay) roomDisplay.value = `Room ${lease.room_number}`;
                             }
                           }}
                         >
-                          <option value="">Leave Unassigned</option>
+                          <option value="">Choose a tenant...</option>
                           {leases.map(l => (
-                            <option key={l.id} value={l.id}>{l.tenant_name} - Room {l.room_number}</option>
+                            <option key={l.id} value={l.id}>{l.tenant_name}</option>
                           ))}
                         </select>
+                    </div>
+
+                    <div className="col-span-2">
+                        <label htmlFor="room_display" className="block text-sm font-medium text-gray-700 mb-1">Assigned Room</label>
+                        <input id="room_display" name="room_display" type="text" readOnly placeholder="Select a tenant first" className="w-full h-10 rounded-md border border-gray-100 px-3 bg-gray-50 text-gray-500 cursor-not-allowed" />
                     </div>
 
                     <div className="col-span-2 md:col-span-1">

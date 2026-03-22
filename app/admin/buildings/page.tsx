@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/Table'
 import { AddBuildingModal } from './AddBuildingModal'
+import { EditBuildingModal } from './EditBuildingModal'
 
 export default async function BuildingsPage() {
   const supabase = await createClient()
@@ -10,17 +11,20 @@ export default async function BuildingsPage() {
   // Fetch buildings joined with owner details
   const { data: buildings } = await supabase
     .from('buildings')
-    .select('*, owners(profiles(full_name))')
+    .select('*, owners(id, status, profiles(full_name))')
     .order('created_at', { ascending: false })
 
-  // Fetch active owners for the dropdown
+  // Fetch all owners for the assignment dropdown
   const { data: owners } = await supabase
     .from('owners')
-    .select('id, profiles!inner(full_name)')
-    .eq('status', 'active')
+    .select('id, status, profiles!inner(full_name)')
     
   // @ts-ignore
-  const ownersList = owners?.map(o => ({ id: o.id, name: o.profiles?.full_name || 'Unknown' })) || []
+  const ownersList = owners?.map(o => ({ 
+    id: o.id, 
+    // @ts-ignore - Handle array from Supabase join
+    name: `${o.profiles?.[0]?.full_name || o.profiles?.full_name || 'Unknown'}${o.status !== 'active' ? ' (Inactive)' : ''}` 
+  })) || []
 
   return (
     <div className="space-y-6">
@@ -52,8 +56,10 @@ export default async function BuildingsPage() {
                   <Td className="font-medium text-gray-900">{building.name}</Td>
                   <Td className="text-blue-600">{building.slug}</Td>
                   <Td>{building.city}, {building.sub_city}</Td>
-                  {/* @ts-ignore */}
-                  <Td>{building.owners?.profiles?.full_name || 'No Owner'}</Td>
+                  <Td>
+                    {/* @ts-ignore */}
+                    {building.owners?.profiles?.full_name || building.owners?.[0]?.profiles?.full_name || 'No Owner'}
+                  </Td>
                   <Td>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       building.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -62,7 +68,7 @@ export default async function BuildingsPage() {
                     </span>
                   </Td>
                   <Td className="text-right">
-                    <Button variant="outline" size="sm">Edit / Assign</Button>
+                    <EditBuildingModal building={building} owners={ownersList} />
                   </Td>
                 </Tr>
               ))

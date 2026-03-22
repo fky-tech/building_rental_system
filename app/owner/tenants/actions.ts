@@ -71,9 +71,41 @@ export async function createTenantAction(prevState: any, formData: FormData) {
 
     revalidatePath('/owner/tenants')
     revalidatePath('/owner/rooms')
+    revalidatePath('/owner')
     return { success: true, message: 'Tenant registered and lease created successfully' }
   } catch (err: any) {
     console.error('Unexpected error in integrated tenant creation:', err)
+    return { success: false, error: err.message || 'An unexpected error occurred' }
+  }
+}
+
+export async function updateTenantAction(prevState: any, formData: FormData) {
+  try {
+    const id = formData.get('id') as string
+    const full_name = formData.get('full_name') as string
+    const phone = formData.get('phone') as string
+    const id_number = formData.get('id_number') as string
+    const notes = formData.get('notes') as string
+
+    if (!id || !full_name) {
+      return { success: false, error: 'ID and Full name are required' }
+    }
+
+    const supabase = await createClient()
+
+    const { error } = await supabase.from('tenants').update({
+      full_name,
+      phone: phone || null,
+      id_number: id_number || null,
+      notes: notes || null
+    }).eq('id', id)
+
+    if (error) throw error
+
+    revalidatePath('/owner/tenants')
+    return { success: true, message: 'Tenant updated successfully' }
+  } catch (err: any) {
+    console.error('Error updating tenant:', err)
     return { success: false, error: err.message || 'An unexpected error occurred' }
   }
 }

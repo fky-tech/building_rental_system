@@ -7,31 +7,28 @@ import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/Table'
 import { createClient } from '@/lib/supabase/client'
 import { RefreshCw, Play, Square } from 'lucide-react'
 import { AddOwnerModal } from './AddOwnerModal'
+import { updateOwnerStatusAction } from './actions'
 
 export function OwnersClient({ initialOwners }: { initialOwners: any[] }) {
   const [owners, setOwners] = useState(initialOwners)
   const [loading, setLoading] = useState(false)
-  const supabase = createClient()
 
   useEffect(() => {
     setOwners(initialOwners)
   }, [initialOwners])
 
-  // Note: To add an owner securely, you usually need a Server Action to bypass Supabase anon key creating users
-  // or use an edge function. For demo, we just show the state.
-
-  const toggleStatus = async (id: string, currentStatus: string) => {
+  const toggleStatus = async (id: string, currentStatus: 'active' | 'inactive') => {
+    if (!confirm(`Are you sure you want to ${currentStatus === 'active' ? 'deactivate' : 'activate'} this owner and all their buildings?`)) return
+    
     setLoading(true)
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
-    const { data, error } = await supabase
-      .from('owners')
-      .update({ status: newStatus })
-      .eq('id', id)
-      .select()
-
-    if (!error && data) {
-      setOwners(owners.map(o => o.id === id ? data[0] : o))
+    
+    const result = await updateOwnerStatusAction(id, newStatus)
+    
+    if (!result.success) {
+      alert(result.error || 'Failed to update status')
     }
+    // Note: revalidatePath will trigger a server-side refresh of initialOwners
     setLoading(false)
   }
 

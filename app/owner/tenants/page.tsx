@@ -5,6 +5,7 @@ import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/Table'
 import { Plus, Users, UserCog } from 'lucide-react'
 
 import { AddTenantModal } from './AddTenantModal'
+import { EditTenantModal } from './EditTenantModal'
 
 export default async function OwnerTenantsPage() {
   const supabase = await createClient()
@@ -12,27 +13,44 @@ export default async function OwnerTenantsPage() {
 
   const { data: ownerRec } = await supabase.from('owners').select('id').eq('user_id', user?.id).single()
 
-  // Fetch available rooms for the integrated tenant/lease modal
+  // Get current building from slug
+  const headersList = await (await import('next/headers')).headers()
+  const host = headersList.get('host') || ''
+  const slug = host.includes('.localhost') ? host.split('.localhost')[0] : null
+
+  const { data: currentBuilding } = await supabase
+    .from('buildings')
+    .select('id, name')
+    .eq('slug', slug)
+    .single()
+
+  // Fetch available rooms for the integrated tenant/lease modal for THIS building only
   const { data: availableRooms } = await supabase
     .from('rooms')
-    .select('id, room_number, rent_amount, buildings!inner(name, owner_id)')
-    // @ts-ignore
-    .eq('buildings.owner_id', ownerRec?.id)
+    .select('id, room_number, rent_amount')
+    .eq('building_id', currentBuilding?.id)
     .eq('status', 'available')
 
   const roomsList = availableRooms?.map(r => ({
     id: r.id,
     room_number: r.room_number,
-    // @ts-ignore
-    building_name: r.buildings?.name || 'Unknown',
+    building_name: currentBuilding?.name || 'Unknown',
     rent: Number(r.rent_amount)
   })) || []
+
+  // Fetch tenants who have leases in this specific building
+  const { data: buildingLeases } = await supabase
+    .from('leases')
+    .select('tenant_id, rooms!inner(building_id)')
+    .eq('rooms.building_id', currentBuilding?.id)
+  
+  const tenantIds = Array.from(new Set(buildingLeases?.map(l => l.tenant_id) || []))
 
   const { data: tenants } = await supabase
     .from('tenants')
     .select('*')
-    .eq('owner_id', ownerRec?.id)
-    .order('created_at', { ascending: false })
+    .in('id', tenantIds)
+    .order('full_name', { ascending: true })
 
   return (
     <div className="space-y-6">
@@ -70,7 +88,7 @@ export default async function OwnerTenantsPage() {
                   <Td className="font-mono text-sm">{tenant.id_number || 'N/A'}</Td>
                   <Td className="text-sm text-gray-500">{new Date(tenant.created_at).toLocaleDateString()}</Td>
                   <Td className="text-right">
-                    <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-900"><UserCog className="w-4 h-4 mr-2" /> Manage</Button>
+                    <EditTenantModal tenant={tenant} />
                   </Td>
                 </Tr>
               ))

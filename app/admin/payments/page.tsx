@@ -4,10 +4,10 @@ import { PaymentsClient } from './PaymentsClient'
 export default async function PaymentsMonitorPage() {
   const supabase = await createClient()
 
-  // Fetch all payments for admin
+  // Fetch all payments for admin with full details
   const { data: payments } = await supabase
     .from('payments')
-    .select('*, leases( rooms( buildings(name) ) )')
+    .select('*, leases( rooms( room_number, buildings(name) ), tenants( profiles(full_name) ) )')
     .order('payment_date', { ascending: false })
 
   return (

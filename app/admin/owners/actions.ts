@@ -81,3 +81,34 @@ export async function createOwnerAction(prevState: any, formData: FormData) {
     return { success: false, error: err.message || 'An unexpected error occurred' }
   }
 }
+
+export async function updateOwnerStatusAction(id: string, status: 'active' | 'inactive') {
+  try {
+    const supabaseAdmin = createAdminClient()
+    
+    // 1. Update owner status
+    const { error: ownerError } = await supabaseAdmin
+      .from('owners')
+      .update({ status })
+      .eq('id', id)
+      
+    if (ownerError) throw ownerError
+
+    // 2. Update all buildings for this owner
+    const { error: buildingError } = await supabaseAdmin
+      .from('buildings')
+      .update({ status })
+      .eq('owner_id', id)
+      
+    if (buildingError) throw buildingError
+
+    revalidatePath('/admin/owners')
+    revalidatePath('/admin/buildings')
+    revalidatePath('/', 'layout')
+
+    return { success: true, message: `Owner and associated buildings ${status === 'active' ? 'activated' : 'deactivated'}` }
+  } catch (err: any) {
+    console.error('Error updating owner status:', err)
+    return { success: false, error: 'Failed to update owner status.' }
+  }
+}

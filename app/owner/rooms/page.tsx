@@ -5,6 +5,7 @@ import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/Table'
 import { Plus, Edit2, KeySquare } from 'lucide-react'
 
 import { AddRoomModal } from './AddRoomModal'
+import { EditRoomModal } from './EditRoomModal'
 
 export default async function OwnerRoomsPage() {
   const supabase = await createClient()
@@ -12,27 +13,29 @@ export default async function OwnerRoomsPage() {
 
   const { data: ownerRec } = await supabase.from('owners').select('id').eq('user_id', user?.id).single()
 
-  // Fetch buildings owned by the user for the modal dropdown
-  const { data: ownerBuildings } = await supabase
+  // Get current building from slug
+  const headersList = await (await import('next/headers')).headers()
+  const host = headersList.get('host') || ''
+  const slug = host.includes('.localhost') ? host.split('.localhost')[0] : null
+
+  const { data: currentBuilding } = await supabase
     .from('buildings')
     .select('id, name')
-    .eq('owner_id', ownerRec?.id)
+    .eq('slug', slug)
+    .single()
 
-  const buildingsList = ownerBuildings || []
-
-  // Fetch rooms for building owned by the user
+  // Fetch rooms for the specific building
   const { data: rooms } = await supabase
     .from('rooms')
     .select('*, buildings!inner(name, owner_id)')
-    // @ts-ignore
-    .eq('buildings.owner_id', ownerRec?.id)
+    .eq('building_id', currentBuilding?.id)
     .order('room_number', { ascending: true })
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">Rooms Management</h1>
-        <AddRoomModal buildings={buildingsList} />
+        {currentBuilding && <AddRoomModal building={currentBuilding} />}
       </div>
 
       <Card className="p-0 overflow-hidden">
@@ -74,7 +77,7 @@ export default async function OwnerRoomsPage() {
                     </span>
                   </Td>
                   <Td className="text-right">
-                    <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-900"><Edit2 className="w-4 h-4"/></Button>
+                    <EditRoomModal room={room} />
                   </Td>
                 </Tr>
               ))

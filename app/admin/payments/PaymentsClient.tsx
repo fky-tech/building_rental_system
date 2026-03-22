@@ -4,10 +4,11 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/Table'
-import { Check, Clock, AlertCircle } from 'lucide-react'
+import { Check, Clock, AlertCircle, X, Info, Building as BuildingIcon, User, Home } from 'lucide-react'
 
 export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) {
   const [filter, setFilter] = useState<'all' | 'verified' | 'unassigned'>('all')
+  const [selectedPayment, setSelectedPayment] = useState<any | null>(null)
 
   const filtered = initialPayments.filter((p) => {
     if (filter === 'all') return true
@@ -52,7 +53,7 @@ export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) 
                     {payment.status === 'unassigned' && <span className="inline-flex items-center text-red-700 bg-red-100 px-2 py-1 text-xs rounded-full"><AlertCircle className="w-3 h-3 mr-1"/> Unassigned</span>}
                   </Td>
                   <Td className="text-right">
-                     <Button variant="outline" size="sm">Details</Button>
+                     <Button variant="outline" size="sm" onClick={() => setSelectedPayment(payment)}>Details</Button>
                   </Td>
                 </Tr>
               ))
@@ -60,6 +61,65 @@ export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) 
           </Tbody>
         </Table>
       </Card>
+
+      {selectedPayment && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+             <div className="flex justify-between items-center mb-6 border-b pb-3">
+               <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                 <Info className="h-5 w-5 text-blue-600" />
+                 Payment Details
+               </h2>
+               <button onClick={() => setSelectedPayment(null)} className="text-gray-400 hover:text-gray-500">
+                 <X className="h-6 w-6" />
+               </button>
+             </div>
+
+             <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><BuildingIcon className="h-3 w-3" /> Building</p>
+                      <p className="text-sm font-semibold">{selectedPayment.leases?.rooms?.buildings?.name || 'N/A'}</p>
+                   </div>
+                   <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                      <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><Home className="h-3 w-3" /> Room</p>
+                      <p className="text-sm font-semibold">{selectedPayment.leases?.rooms?.room_number || 'N/A'}</p>
+                   </div>
+                </div>
+
+                <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100/50">
+                   <p className="text-xs text-blue-600 mb-1 flex items-center gap-1 font-medium"><User className="h-3 w-3" /> Tenant Name</p>
+                   <p className="text-base font-bold text-blue-900 border-l-2 border-blue-300 pl-3 ml-1 mt-1">
+                      {selectedPayment.leases?.tenants?.profiles?.full_name || 'Unassigned Tenant'}
+                   </p>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                   <div className="flex justify-between text-sm py-1 border-b border-gray-50">
+                      <span className="text-gray-500">Transaction ID</span>
+                      <span className="font-mono font-medium">{selectedPayment.transaction_id || 'Cash/Manual'}</span>
+                   </div>
+                   <div className="flex justify-between text-sm py-1 border-b border-gray-50">
+                      <span className="text-gray-500">Amount Paid</span>
+                      <span className="font-bold text-gray-900">${selectedPayment.amount}</span>
+                   </div>
+                   <div className="flex justify-between text-sm py-1 border-b border-gray-50">
+                      <span className="text-gray-500">Status</span>
+                      <span className={`capitalize font-medium ${selectedPayment.status === 'verified' ? 'text-green-600' : 'text-yellow-600'}`}>{selectedPayment.status}</span>
+                   </div>
+                   <div className="flex justify-between text-sm py-1">
+                      <span className="text-gray-500">Payment Date</span>
+                      <span className="font-medium">{selectedPayment.payment_date}</span>
+                   </div>
+                </div>
+             </div>
+
+             <div className="mt-8 flex justify-end">
+                <Button variant="primary" onClick={() => setSelectedPayment(null)} className="w-full">Close</Button>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

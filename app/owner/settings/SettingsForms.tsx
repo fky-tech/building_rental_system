@@ -37,15 +37,21 @@ export function SettingsForms({ profile, email }: { profile: Profile, email: str
 
   const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    const form = e.currentTarget
     setPasswordLoading(true)
     setPasswordMessage(null)
 
-    const formData = new FormData(e.currentTarget)
+    const formData = new FormData(form)
     const result = await updatePasswordAction(null, formData)
 
     if (result.success) {
-      setPasswordMessage({ type: 'success', text: result.message || 'Password updated successfully' })
-      e.currentTarget.reset()
+      setPasswordMessage({ type: 'success', text: 'Password updated successfully. Signing you out in 2 seconds...' })
+      form.reset()
+      
+      // Sign out after 2 seconds
+      setTimeout(() => {
+        window.location.href = '/auth/signout'
+      }, 2000)
     } else {
       setPasswordMessage({ type: 'error', text: result.error || 'Failed to update password' })
     }
