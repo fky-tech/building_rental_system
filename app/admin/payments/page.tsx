@@ -5,9 +5,21 @@ export default async function PaymentsMonitorPage() {
   const supabase = await createClient()
 
   // Fetch all payments for admin with full details
-  const { data: payments } = await supabase
+  const { data: payments, error } = await supabase
     .from('payments')
-    .select('*, leases( rooms( room_number, buildings(name) ), tenants( profiles(full_name) ) )')
+    .select(`
+      *,
+      leases(
+        room_id,
+        rooms(
+          room_number,
+          buildings(name)
+        ),
+        tenants(
+          full_name
+        )
+      )
+    `)
     .order('payment_date', { ascending: false })
 
   return (

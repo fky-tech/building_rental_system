@@ -68,61 +68,9 @@ export default async function OwnerPaymentsPage() {
         <AddPaymentModal leases={leasesList} />
       </div>
 
-      <Card className="p-0 overflow-hidden">
-         <Table>
-          <Thead>
-            <Tr>
-              <Th>Date</Th>
-              <Th>Tenant / Room</Th>
-              <Th>Amount</Th>
-              <Th>Method / Tx ID</Th>
-              <Th>Status</Th>
-              <Th className="text-right">Action</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {!payments || payments.length === 0 ? (
-              <Tr>
-                <Td colSpan={6} className="text-center py-12 text-gray-500">
-                  <div className="flex flex-col items-center justify-center">
-                    <CreditCard className="h-10 w-10 text-gray-300 mb-2" />
-                    <p>No payments recorded yet.</p>
-                  </div>
-                </Td>
-              </Tr>
-            ) : (
-              payments.map((payment) => (
-                <Tr key={payment.id}>
-                  <Td>{payment.payment_date}</Td>
-                  <Td>
-                     {/* @ts-ignore */}
-                     <span className="font-semibold block text-gray-900">{payment.leases?.tenants?.full_name || 'Unassigned'}</span>
-                     {/* @ts-ignore */}
-                     {payment.leases && <span className="text-xs text-gray-500">Room {payment.leases?.rooms?.room_number}</span>}
-                  </Td>
-                  <Td className="font-medium text-emerald-600">${payment.amount}</Td>
-                  <Td>
-                     <span className="capitalize block">{payment.payment_method}</span>
-                     <span className="text-xs text-gray-500 font-mono">{payment.transaction_id || '-'}</span>
-                  </Td>
-                  <Td>
-                    {payment.status === 'verified' && <span className="inline-flex items-center text-green-700 bg-green-100 px-2 py-1 text-xs rounded-full"><Check className="w-3 h-3 mr-1"/> Verified</span>}
-                    {payment.status === 'pending' && <span className="inline-flex items-center text-yellow-700 bg-yellow-100 px-2 py-1 text-xs rounded-full"><Clock className="w-3 h-3 mr-1"/> Pending</span>}
-                    {payment.status === 'unassigned' && <span className="inline-flex items-center text-red-700 bg-red-100 px-2 py-1 text-xs rounded-full"><AlertCircle className="w-3 h-3 mr-1"/> Unassigned</span>}
-                  </Td>
-                  <Td className="text-right">
-                    {payment.status === 'unassigned' ? (
-                       <Button variant="outline" size="sm" className="text-blue-600 border-blue-200 hover:bg-blue-50">Assign Lease</Button>
-                    ) : (
-                       <Button variant="ghost" size="sm">Details</Button>
-                    )}
-                  </Td>
-                </Tr>
-              ))
-            )}
-          </Tbody>
-        </Table>
-      </Card>
+      <OwnerPaymentsClient initialPayments={payments || []} />
     </div>
   )
 }
+
+import { OwnerPaymentsClient } from './OwnerPaymentsClient'

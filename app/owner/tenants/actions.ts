@@ -109,3 +109,30 @@ export async function updateTenantAction(prevState: any, formData: FormData) {
     return { success: false, error: err.message || 'An unexpected error occurred' }
   }
 }
+
+export async function endLeaseAction(leaseId: string) {
+  try {
+    const supabase = await createClient()
+
+    // 1. Get the room_id from the lease
+    const { data: lease } = await supabase.from('leases').select('room_id').eq('id', leaseId).single()
+    if (!lease) throw new Error('Lease not found')
+
+    // 2. End the lease
+    const { error: leaseError } = await supabase.from('leases').update({ status: 'ended', end_date: new Date().toISOString().split('T')[0] }).eq('id', leaseId)
+    if (leaseError) throw leaseError
+
+    // 3. Set room to available
+    const { error: roomError } = await supabase.from('rooms').update({ status: 'available' }).eq('id', lease.room_id)
+    if (roomError) throw roomError
+
+    revalidatePath('/owner/tenants')
+    revalidatePath('/owner/rooms')
+    revalidatePath('/owner')
+
+    return { success: true, message: 'Lease ended and room is now available' }
+  } catch (err: any) {
+    console.error('Error ending lease:', err)
+    return { success: false, error: err.message || 'Failed to end lease' }
+  }
+}

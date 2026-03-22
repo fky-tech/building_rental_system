@@ -2,8 +2,13 @@ import React from 'react'
 import { AlertTriangle, Home } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
+import { headers } from 'next/headers'
 
-export default function NotWorkingPage() {
+export default async function NotWorkingPage() {
+  const headersList = await (await import('next/headers')).headers()
+  const host = headersList.get('host') || 'localhost:3000'
+  const loginUrl = host.includes('.localhost') ? `http://${host}/login` : 'http://localhost:3000/login'
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full text-center space-y-6">
@@ -20,9 +25,9 @@ export default function NotWorkingPage() {
         </p>
         
         <div className="pt-6">
-          <Link href="http://localhost:3000">
+          <Link href={loginUrl}>
             <Button variant="primary" size="lg" className="w-full">
-              <Home className="mr-2 h-5 w-5" /> Return to Home
+              <Home className="mr-2 h-5 w-5" /> Return to Login
             </Button>
           </Link>
         </div>

@@ -118,8 +118,30 @@ export function AddPaymentModal({ leases }: { leases: LeaseOption[] }) {
                     </div>
 
                     <div className="col-span-2 md:col-span-1">
-                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Amount ($)</label>
+                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Total Amount ($)</label>
                         <input id="amount" name="amount" type="number" step="0.01" required placeholder="0.00" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                    </div>
+
+                    <div className="col-span-2 md:col-span-1">
+                        <label htmlFor="months_to_pay" className="block text-sm font-medium text-gray-700 mb-1">Months Included</label>
+                        <select 
+                          id="months_to_pay" 
+                          name="months_to_pay" 
+                          className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                          onChange={(e) => {
+                            const months = parseInt(e.target.value);
+                            const leaseId = (document.getElementById('lease_id') as HTMLSelectElement).value;
+                            const lease = leases.find(l => l.id === leaseId);
+                            if (lease) {
+                              const amountInput = document.getElementById('amount') as HTMLInputElement;
+                              if (amountInput) amountInput.value = (lease.monthly_rent * months).toString();
+                            }
+                          }}
+                        >
+                          <option value="1">1 Month (Default)</option>
+                          <option value="3">3 Months</option>
+                          <option value="6">6 Months</option>
+                        </select>
                     </div>
                     
                     <div className="col-span-2 md:col-span-1">
@@ -136,7 +158,7 @@ export function AddPaymentModal({ leases }: { leases: LeaseOption[] }) {
                         </select>
                     </div>
 
-                    <div className="col-span-2 md:col-span-1">
+                    <div className="col-span-2">
                         <label htmlFor="transaction_id" className="block text-sm font-medium text-gray-700 mb-1">Tx ID / Ref #</label>
                         <input id="transaction_id" name="transaction_id" type="text" placeholder="Optional" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                     </div>

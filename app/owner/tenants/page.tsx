@@ -41,16 +41,23 @@ export default async function OwnerTenantsPage() {
   // Fetch tenants who have leases in this specific building
   const { data: buildingLeases } = await supabase
     .from('leases')
-    .select('tenant_id, rooms!inner(building_id)')
+    .select('id, tenant_id, rooms!inner(building_id)')
     .eq('rooms.building_id', currentBuilding?.id)
+    .eq('status', 'active')
   
-  const tenantIds = Array.from(new Set(buildingLeases?.map(l => l.tenant_id) || []))
+  const leaseMap = new Map((buildingLeases || []).map(l => [l.tenant_id, l.id]))
+  const tenantIds = Array.from(leaseMap.keys())
 
-  const { data: tenants } = await supabase
+  const { data: tenantsResult } = await supabase
     .from('tenants')
     .select('*')
     .in('id', tenantIds)
     .order('full_name', { ascending: true })
+
+  const tenants = tenantsResult?.map(t => ({
+    ...t,
+    active_lease_id: leaseMap.get(t.id)
+  })) || []
 
   return (
     <div className="space-y-6">

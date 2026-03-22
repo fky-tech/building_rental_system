@@ -24,27 +24,41 @@ export async function createPaymentAction(prevState: any, formData: FormData) {
     const { data: ownerRec } = await supabase.from('owners').select('id').eq('user_id', user.id).single()
     if (!ownerRec) return { success: false, error: 'Owner record not found' }
 
+    const months_to_pay = parseInt(formData.get('months_to_pay') as string || '1')
+    const amountPerMonth = amount / months_to_pay
+
     // Determine target month/year from payment date (or current date if desired)
     const pDate = new Date(payment_date)
-    const month = pDate.getMonth() + 1
-    const year = pDate.getFullYear()
+    
+    // Create multiple payment records if multi-month is selected
+    const paymentsToInsert = []
+    
+    for (let i = 0; i < months_to_pay; i++) {
+      const targetDate = new Date(pDate)
+      targetDate.setMonth(pDate.getMonth() + i)
+      const month = targetDate.getMonth() + 1
+      const year = targetDate.getFullYear()
+      
+      paymentsToInsert.push({
+        owner_id: ownerRec.id,
+        lease_id: lease_id || null,
+        amount: amountPerMonth,
+        payment_method,
+        payment_date,
+        month,
+        year,
+        // Append index to transaction_id to maintain uniqueness if multiple months are paid at once
+        transaction_id: transaction_id ? (months_to_pay > 1 ? `${transaction_id}-${i + 1}` : transaction_id) : null,
+        status: lease_id ? 'pending' : 'unassigned',
+        note: note || (months_to_pay > 1 ? `Multi-month payment (${i + 1}/${months_to_pay})` : null)
+      })
+    }
 
-    const { error } = await supabase.from('payments').insert({
-      owner_id: ownerRec.id,
-      lease_id: lease_id || null,
-      amount,
-      payment_method,
-      payment_date,
-      month,
-      year,
-      transaction_id: transaction_id || null,
-      status: lease_id ? 'pending' : 'unassigned',
-      note: note || null
-    })
+    const { error } = await supabase.from('payments').insert(paymentsToInsert)
 
     if (error) {
-      console.error('Error recording payment:', error)
-      return { success: false, error: 'Failed to record payment.' }
+      console.error('Error recording payment(s):', error)
+      return { success: false, error: 'Failed to record payment(s).' }
     }
 
     revalidatePath('/owner/payments')

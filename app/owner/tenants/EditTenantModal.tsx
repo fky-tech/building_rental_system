@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { UserCog, CheckCircle, X } from 'lucide-react'
-import { updateTenantAction } from './actions'
+import { updateTenantAction, endLeaseAction } from './actions'
 import { useRouter } from 'next/navigation'
 
 export function EditTenantModal({ tenant }: { tenant: any }) {
@@ -73,46 +73,84 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
                   </div>
                </div>
             ) : (
-             <form onSubmit={onSubmit} className="space-y-4">
-                {error && (
-                  <div className="p-3 bg-red-50 text-red-800 text-sm rounded-md border border-red-100">
-                    {error}
+              <div className="space-y-6">
+                <form onSubmit={onSubmit} className="space-y-4">
+                  {error && (
+                    <div className="p-3 bg-red-50 text-red-800 text-sm rounded-md border border-red-100">
+                      {error}
+                    </div>
+                  )}
+                  
+                  <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 italic">
+                      Note: To update tenant personal details, fill out the form below.
+                  </p>
+
+                  <div className="space-y-4">
+                      <div>
+                          <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                          <input id="full_name" name="full_name" type="text" required defaultValue={tenant.full_name} className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+                      
+                      <div>
+                          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                          <input id="phone" name="phone" type="text" defaultValue={tenant.phone || ''} placeholder="+251 ..." className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+
+                      <div>
+                          <label htmlFor="id_number" className="block text-sm font-medium text-gray-700 mb-1">ID / Passport Number</label>
+                          <input id="id_number" name="id_number" type="text" defaultValue={tenant.id_number || ''} placeholder="ID-12345" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                      </div>
+
+                      <div>
+                          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                          <textarea id="notes" name="notes" rows={2} defaultValue={tenant.notes || ''} placeholder="Internal notes about the tenant..." className="w-full rounded-md border border-gray-300 p-3 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                      </div>
                   </div>
-                )}
-                
-                <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 italic">
-                    Note: Lease details cannot be changed here. To modify a lease, please manage it from the specific room or contact support.
-                </p>
 
-                <div className="space-y-4">
-                    <div>
-                        <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-                        <input id="full_name" name="full_name" type="text" required defaultValue={tenant.full_name} className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
-                    </div>
-                    
-                    <div>
-                        <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
-                        <input id="phone" name="phone" type="text" defaultValue={tenant.phone || ''} placeholder="+251 ..." className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
-                    </div>
+                  <div className="pt-4 flex justify-end space-x-2 border-t border-gray-100">
+                      <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Cancel</Button>
+                      <Button type="submit" variant="primary" disabled={loading}>
+                        {loading ? 'Saving...' : 'Save Changes'}
+                      </Button>
+                  </div>
+                </form>
 
-                    <div>
-                        <label htmlFor="id_number" className="block text-sm font-medium text-gray-700 mb-1">ID / Passport Number</label>
-                        <input id="id_number" name="id_number" type="text" defaultValue={tenant.id_number || ''} placeholder="ID-12345" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
-                    </div>
-
-                    <div>
-                        <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                        <textarea id="notes" name="notes" rows={3} defaultValue={tenant.notes || ''} placeholder="Internal notes about the tenant..." className="w-full rounded-md border border-gray-300 p-3 focus:ring-blue-500 focus:border-blue-500"></textarea>
-                    </div>
+                <div className="pt-6 border-t border-gray-200 mt-6">
+                   <h3 className="text-sm font-bold text-red-600 mb-4 uppercase tracking-wider">Danger Zone</h3>
+                   <div className="space-y-3">
+                      {tenant.active_lease_id && (
+                        <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-100">
+                           <div className="text-xs">
+                              <p className="font-bold text-orange-900">Active Lease Found</p>
+                              <p className="text-orange-700">End the lease to make the room available again.</p>
+                           </div>
+                           <Button 
+                             type="button" 
+                             variant="outline" 
+                             size="sm" 
+                             className="bg-white border-orange-200 text-orange-700 hover:bg-orange-100"
+                             onClick={async () => {
+                               if (confirm('Are you sure you want to end this lease? The room will become available.')) {
+                                 setLoading(true)
+                                 const res = await endLeaseAction(tenant.active_lease_id)
+                                 if (res.success) {
+                                   setSuccess(true)
+                                 } else {
+                                   setError(res.error)
+                                 }
+                                 setLoading(false)
+                                 router.refresh()
+                               }
+                             }}
+                             disabled={loading}
+                           >
+                             End Lease
+                           </Button>
+                        </div>
+                      )}
+                   </div>
                 </div>
-
-                <div className="pt-4 flex justify-end space-x-2 border-t border-gray-100 mt-6">
-                    <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Cancel</Button>
-                    <Button type="submit" variant="primary" disabled={loading}>
-                      {loading ? 'Saving...' : 'Save Changes'}
-                    </Button>
-                </div>
-             </form>
+              </div>
             )}
           </div>
         </div>

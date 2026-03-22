@@ -4,56 +4,57 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/Table'
-import { Check, Clock, AlertCircle, X, Info, Building as BuildingIcon, User, Home } from 'lucide-react'
+import { Check, Clock, AlertCircle, X, Info, User, Home, CreditCard } from 'lucide-react'
 
-export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) {
-  const [filter, setFilter] = useState<'all' | 'verified' | 'unassigned'>('all')
+export function OwnerPaymentsClient({ initialPayments }: { initialPayments: any[] }) {
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null)
 
-  const filtered = initialPayments.filter((p) => {
-    if (filter === 'all') return true
-    return p.status === filter
-  })
-
   return (
-    <div className="space-y-6">
-      <div className="flex space-x-2">
-        <Button variant={filter === 'all' ? 'primary' : 'outline'} onClick={() => setFilter('all')}>All Payments</Button>
-        <Button variant={filter === 'verified' ? 'primary' : 'outline'} onClick={() => setFilter('verified')}>Verified</Button>
-        <Button variant={filter === 'unassigned' ? 'primary' : 'outline'} onClick={() => setFilter('unassigned')}>Unassigned</Button>
-      </div>
-
+    <>
       <Card className="p-0 overflow-hidden">
-        <Table>
+         <Table>
           <Thead>
             <Tr>
               <Th>Date</Th>
-              <Th>Transaction ID</Th>
-              <Th>Method</Th>
+              <Th>Tenant / Room</Th>
               <Th>Amount</Th>
+              <Th>Method / Tx ID</Th>
               <Th>Status</Th>
               <Th className="text-right">Action</Th>
             </Tr>
           </Thead>
           <Tbody>
-            {filtered.length === 0 ? (
+            {!initialPayments || initialPayments.length === 0 ? (
               <Tr>
-                <Td colSpan={6} className="text-center py-8 text-gray-500">No {filter !== 'all' && filter} payments found.</Td>
+                <Td colSpan={6} className="text-center py-12 text-gray-500">
+                  <div className="flex flex-col items-center justify-center">
+                    <CreditCard className="h-10 w-10 text-gray-300 mb-2" />
+                    <p>No payments recorded yet.</p>
+                  </div>
+                </Td>
               </Tr>
             ) : (
-              filtered.map((payment) => (
+              initialPayments.map((payment) => (
                 <Tr key={payment.id}>
                   <Td>{payment.payment_date}</Td>
-                  <Td className="font-mono text-sm">{payment.transaction_id || '-'}</Td>
-                  <Td className="capitalize">{payment.payment_method}</Td>
-                  <Td className="font-medium text-gray-900">${payment.amount}</Td>
+                  <Td>
+                     {/* @ts-ignore */}
+                     <span className="font-semibold block text-gray-900">{payment.leases?.tenants?.full_name || 'Unassigned'}</span>
+                     {/* @ts-ignore */}
+                     {payment.leases && <span className="text-xs text-gray-500">Room {payment.leases?.rooms?.room_number}</span>}
+                  </Td>
+                  <Td className="font-medium text-emerald-600">${payment.amount}</Td>
+                  <Td>
+                     <span className="capitalize block">{payment.payment_method}</span>
+                     <span className="text-xs text-gray-500 font-mono">{payment.transaction_id || '-'}</span>
+                  </Td>
                   <Td>
                     {payment.status === 'verified' && <span className="inline-flex items-center text-green-700 bg-green-100 px-2 py-1 text-xs rounded-full"><Check className="w-3 h-3 mr-1"/> Verified</span>}
                     {payment.status === 'pending' && <span className="inline-flex items-center text-yellow-700 bg-yellow-100 px-2 py-1 text-xs rounded-full"><Clock className="w-3 h-3 mr-1"/> Pending</span>}
                     {payment.status === 'unassigned' && <span className="inline-flex items-center text-red-700 bg-red-100 px-2 py-1 text-xs rounded-full"><AlertCircle className="w-3 h-3 mr-1"/> Unassigned</span>}
                   </Td>
                   <Td className="text-right">
-                     <Button variant="outline" size="sm" onClick={() => setSelectedPayment(payment)}>Details</Button>
+                    <Button variant="outline" size="sm" onClick={() => setSelectedPayment(payment)}>Details</Button>
                   </Td>
                 </Tr>
               ))
@@ -63,8 +64,8 @@ export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) 
       </Card>
 
       {selectedPayment && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative animate-in zoom-in-95 duration-200">
              <div className="flex justify-between items-center mb-6 border-b pb-3">
                <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
                  <Info className="h-5 w-5 text-blue-600" />
@@ -79,20 +80,13 @@ export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) 
                 {(() => {
                   const lease = Array.isArray(selectedPayment.leases) ? selectedPayment.leases[0] : selectedPayment.leases;
                   const room = Array.isArray(lease?.rooms) ? lease?.rooms[0] : lease?.rooms;
-                  const building = Array.isArray(room?.buildings) ? room?.buildings[0] : room?.buildings;
                   const tenant = Array.isArray(lease?.tenants) ? lease?.tenants[0] : lease?.tenants;
 
                   return (
                     <>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                           <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><BuildingIcon className="h-3 w-3" /> Building</p>
-                           <p className="text-sm font-semibold">{building?.name || 'N/A'}</p>
-                        </div>
-                        <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
-                           <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><Home className="h-3 w-3" /> Room</p>
-                           <p className="text-sm font-semibold">{room?.room_number || 'N/A'}</p>
-                        </div>
+                      <div className="bg-gray-50 p-3 rounded-lg border border-gray-100">
+                         <p className="text-xs text-gray-500 mb-1 flex items-center gap-1"><Home className="h-3 w-3" /> Room</p>
+                         <p className="text-sm font-semibold">Room {room?.room_number || 'N/A'}</p>
                       </div>
 
                       <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100/50">
@@ -131,6 +125,6 @@ export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) 
           </div>
         </div>
       )}
-    </div>
+    </>
   )
 }
