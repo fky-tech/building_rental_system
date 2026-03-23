@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/Button'
 import { Plus, CheckCircle, X } from 'lucide-react'
 import { createTenantAction } from './actions'
 import { useRouter } from 'next/navigation'
+import { EthiopianDateInput } from '@/components/ui/EthiopianDateInput'
+import { useLanguage } from '@/lib/LanguageContext'
 
 type RoomOption = {
   id: string
@@ -18,6 +20,7 @@ export function AddTenantModal({ rooms }: { rooms: RoomOption[] }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const { t } = useLanguage()
   const router = useRouter()
 
   const handleClose = () => {
@@ -42,7 +45,7 @@ export function AddTenantModal({ rooms }: { rooms: RoomOption[] }) {
       setLoading(false)
       router.refresh()
     } else {
-      setError(result.error || 'Failed to add tenant and lease')
+      setError(result.error || t('common.error'))
       setLoading(false)
     }
   }
@@ -50,15 +53,15 @@ export function AddTenantModal({ rooms }: { rooms: RoomOption[] }) {
   return (
     <>
       <Button size="md" variant="primary" onClick={() => setOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" /> Add Tenant
+          <Plus className="mr-2 h-4 w-4" /> {t('tenants.add')}
       </Button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6 relative my-8 text-left">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto text-left">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-2xl p-6 relative my-8">
             <div className="flex justify-between items-center mb-4 border-b pb-3">
                <h2 className="text-xl font-semibold text-gray-900">
-                 {success ? 'Tenant Registered Successfully' : 'Register New Tenant & Lease'}
+                 {success ? t('tenants.success') : t('tenants.register')}
                </h2>
                <button onClick={handleClose} type="button" className="text-gray-400 hover:text-gray-500">
                  <X className="h-6 w-6" />
@@ -72,11 +75,11 @@ export function AddTenantModal({ rooms }: { rooms: RoomOption[] }) {
                        <CheckCircle className="h-8 w-8" />
                     </div>
                     <p className="text-gray-600">
-                       Tenant record created and lease agreement activated.
+                       {t('tenants.record_created')}
                     </p>
                   </div>
                   <div className="pt-4 border-t flex justify-end">
-                      <Button variant="primary" onClick={handleClose}>Done</Button>
+                      <Button variant="primary" onClick={handleClose}>{t('tenants.done')}</Button>
                   </div>
                </div>
             ) : (
@@ -90,18 +93,18 @@ export function AddTenantModal({ rooms }: { rooms: RoomOption[] }) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Tenant Information Section */}
                     <div className="col-span-2">
-                        <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">1. Tenant Information</h3>
+                        <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">{t('tenants.info_section')}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.full_name')}</label>
                                 <input id="full_name" name="full_name" type="text" required placeholder="John Doe" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
                             <div>
-                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.phone_number')}</label>
                                 <input id="phone" name="phone" type="text" placeholder="+251 ..." className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
                             <div className="md:col-span-2">
-                                <label htmlFor="id_number" className="block text-sm font-medium text-gray-700 mb-1">ID / Passport Number</label>
+                                <label htmlFor="id_number" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.id_passport')}</label>
                                 <input id="id_number" name="id_number" type="text" placeholder="ID-12345" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
                         </div>
@@ -109,10 +112,10 @@ export function AddTenantModal({ rooms }: { rooms: RoomOption[] }) {
 
                     {/* Lease Information Section */}
                     <div className="col-span-2 pt-4 border-t border-gray-100">
-                        <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">2. Lease Details</h3>
+                        <h3 className="text-sm font-bold text-blue-600 uppercase tracking-wider mb-3">{t('tenants.lease_section')}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="md:col-span-2">
-                                <label htmlFor="room_id" className="block text-sm font-medium text-gray-700 mb-1">Select Room</label>
+                                <label htmlFor="room_id" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.select_room')}</label>
                                 <select 
                                   id="room_id" 
                                   name="room_id" 
@@ -126,41 +129,51 @@ export function AddTenantModal({ rooms }: { rooms: RoomOption[] }) {
                                       }
                                   }}
                                 >
-                                  <option value="">Choose an available room...</option>
+                                  <option value="">{t('tenants.choose_room')}</option>
                                   {rooms.map(r => (
                                     <option key={r.id} value={r.id}>{r.building_name} - Room {r.room_number}</option>
                                   ))}
                                 </select>
-                                {rooms.length === 0 && <p className="text-xs text-red-500 mt-1">No rooms available. Please add rooms first.</p>}
+                                {rooms.length === 0 && <p className="text-xs text-red-500 mt-1">{t('tenants.no_rooms')}</p>}
                             </div>
 
                             <div>
-                                <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">Lease Start Date</label>
-                                <input id="start_date" name="start_date" type="date" required defaultValue={new Date().toISOString().split('T')[0]} className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                                <label htmlFor="start_date" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.start_date')}</label>
+                                <EthiopianDateInput 
+                                  id="start_date" 
+                                  name="start_date" 
+                                  required 
+                                  defaultValue={new Date().toISOString().split('T')[0]} 
+                                  className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500 text-sm" 
+                                />
                             </div>
                             
                             <div>
-                                <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">End Date (Optional)</label>
-                                <input id="end_date" name="end_date" type="date" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                                <label htmlFor="end_date" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.end_date')}</label>
+                                <EthiopianDateInput 
+                                  id="end_date" 
+                                  name="end_date" 
+                                  className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500 text-sm" 
+                                />
                             </div>
 
                             <div>
-                                <label htmlFor="monthly_rent" className="block text-sm font-medium text-gray-700 mb-1">Monthly Rent (Birr)</label>
+                                <label htmlFor="monthly_rent" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.monthly_rent')}</label>
                                 <input id="monthly_rent" name="monthly_rent" type="number" step="0.01" required placeholder="0.00" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
 
                             <div>
-                                <label htmlFor="payment_due_day" className="block text-sm font-medium text-gray-700 mb-1">Rent Due Day (1-31)</label>
-                                <input id="payment_due_day" name="payment_due_day" type="number" min="1" max="31" required defaultValue="5" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
+                                <label htmlFor="payment_due_day" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.due_day')}</label>
+                                <input id="payment_due_day" name="payment_due_day" type="number" min="1" max="30" required defaultValue="5" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <div className="pt-4 flex justify-end space-x-2 border-t border-gray-100 mt-6">
-                    <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Cancel</Button>
+                    <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>{t('tenants.cancel')}</Button>
                     <Button type="submit" variant="primary" disabled={loading || rooms.length === 0}>
-                      {loading ? 'Processing...' : 'Register Tenant & Lease'}
+                      {loading ? t('tenants.processing') : t('tenants.register_btn')}
                     </Button>
                 </div>
              </form>

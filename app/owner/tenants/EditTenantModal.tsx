@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/Button'
 import { UserCog, CheckCircle, X } from 'lucide-react'
 import { updateTenantAction, endLeaseAction } from './actions'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/lib/LanguageContext'
 
 export function EditTenantModal({ tenant }: { tenant: any }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const { t } = useLanguage()
   const router = useRouter()
 
   const handleClose = () => {
@@ -37,7 +39,7 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
       setLoading(false)
       router.refresh()
     } else {
-      setError(result.error || 'Failed to update tenant')
+      setError(result.error || t('common.error'))
       setLoading(false)
     }
   }
@@ -45,15 +47,15 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
   return (
     <>
       <Button variant="ghost" size="sm" className="text-indigo-600 hover:text-indigo-900" onClick={() => setOpen(true)}>
-          <UserCog className="w-4 h-4 mr-2" /> Manage
+          <UserCog className="w-4 h-4 mr-2" /> {t('tenants.manage')}
       </Button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative my-8 text-left">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto text-left">
+          <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 relative my-8">
             <div className="flex justify-between items-center mb-4 border-b pb-3">
                <h2 className="text-xl font-semibold text-gray-900">
-                 {success ? 'Tenant Updated Successfully' : 'Manage Tenant Details'}
+                 {success ? t('tenants.manage_success') : t('tenants.manage_title')}
                </h2>
                <button onClick={handleClose} type="button" className="text-gray-400 hover:text-gray-500">
                  <X className="h-6 w-6" />
@@ -66,10 +68,10 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
                     <div className="h-12 w-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center">
                        <CheckCircle className="h-8 w-8" />
                     </div>
-                    <p className="text-gray-600">Tenant information has been updated.</p>
+                    <p className="text-gray-600">{t('tenants.updated')}</p>
                   </div>
                   <div className="pt-4 border-t flex justify-end">
-                      <Button variant="primary" onClick={handleClose}>Done</Button>
+                      <Button variant="primary" onClick={handleClose}>{t('tenants.done')}</Button>
                   </div>
                </div>
             ) : (
@@ -82,47 +84,47 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
                   )}
                   
                   <p className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 italic">
-                      Note: To update tenant personal details, fill out the form below.
+                      {t('tenants.note_update')}
                   </p>
 
                   <div className="space-y-4">
                       <div>
-                          <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                          <label htmlFor="full_name" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.full_name')}</label>
                           <input id="full_name" name="full_name" type="text" required defaultValue={tenant.full_name} className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                       </div>
                       
                       <div>
-                          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                          <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.phone_number')}</label>
                           <input id="phone" name="phone" type="text" defaultValue={tenant.phone || ''} placeholder="+251 ..." className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                       </div>
 
                       <div>
-                          <label htmlFor="id_number" className="block text-sm font-medium text-gray-700 mb-1">ID / Passport Number</label>
+                          <label htmlFor="id_number" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.id_passport')}</label>
                           <input id="id_number" name="id_number" type="text" defaultValue={tenant.id_number || ''} placeholder="ID-12345" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                       </div>
 
                       <div>
-                          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
-                          <textarea id="notes" name="notes" rows={2} defaultValue={tenant.notes || ''} placeholder="Internal notes about the tenant..." className="w-full rounded-md border border-gray-300 p-3 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                          <label htmlFor="notes" className="block text-sm font-medium text-gray-700 mb-1">{t('tenants.notes')}</label>
+                          <textarea id="notes" name="notes" rows={2} defaultValue={tenant.notes || ''} placeholder={t('tenants.notes_placeholder')} className="w-full rounded-md border border-gray-300 p-3 focus:ring-blue-500 focus:border-blue-500"></textarea>
                       </div>
                   </div>
 
                   <div className="pt-4 flex justify-end space-x-2 border-t border-gray-100">
-                      <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>Cancel</Button>
+                      <Button type="button" variant="outline" onClick={handleClose} disabled={loading}>{t('tenants.cancel')}</Button>
                       <Button type="submit" variant="primary" disabled={loading}>
-                        {loading ? 'Saving...' : 'Save Changes'}
+                        {loading ? t('tenants.saving') : t('tenants.save')}
                       </Button>
                   </div>
                 </form>
 
-                <div className="pt-6 border-t border-gray-200 mt-6">
-                   <h3 className="text-sm font-bold text-red-600 mb-4 uppercase tracking-wider">Danger Zone</h3>
+                <div className="pt-6 border-t border-gray-200 mt-6 text-left">
+                   <h3 className="text-sm font-bold text-red-600 mb-4 uppercase tracking-wider">{t('tenants.danger_zone')}</h3>
                    <div className="space-y-3">
                       {tenant.active_lease_id && (
                         <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-100">
                            <div className="text-xs">
-                              <p className="font-bold text-orange-900">Active Lease Found</p>
-                              <p className="text-orange-700">End the lease to make the room available again.</p>
+                              <p className="font-bold text-orange-900">{t('tenants.active_lease')}</p>
+                              <p className="text-orange-700">{t('tenants.end_lease_desc')}</p>
                            </div>
                            <Button 
                              type="button" 
@@ -130,7 +132,7 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
                              size="sm" 
                              className="bg-white border-orange-200 text-orange-700 hover:bg-orange-100"
                              onClick={async () => {
-                               if (confirm('Are you sure you want to end this lease? The room will become available.')) {
+                               if (confirm(t('tenants.confirm_end_lease'))) {
                                  setLoading(true)
                                  const res = await endLeaseAction(tenant.active_lease_id)
                                  if (res.success) {
@@ -144,7 +146,7 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
                              }}
                              disabled={loading}
                            >
-                             End Lease
+                             {t('tenants.end_lease')}
                            </Button>
                         </div>
                       )}

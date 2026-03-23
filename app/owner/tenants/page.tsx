@@ -1,11 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
-import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/Table'
-import { Plus, Users, UserCog } from 'lucide-react'
-
-import { AddTenantModal } from './AddTenantModal'
-import { EditTenantModal } from './EditTenantModal'
+import { TenantsClient } from './TenantsClient'
 
 export default async function OwnerTenantsPage() {
   const supabase = await createClient()
@@ -59,50 +53,5 @@ export default async function OwnerTenantsPage() {
     active_lease_id: leaseMap.get(t.id)
   })) || []
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Tenants Directory</h1>
-        <AddTenantModal rooms={roomsList} />
-      </div>
-
-      <Card className="p-0 overflow-hidden">
-        <Table>
-          <Thead>
-            <Tr>
-              <Th>Full Name</Th>
-              <Th>Contact Phone</Th>
-              <Th>ID Number</Th>
-              <Th>Added On</Th>
-              <Th className="text-right">Action</Th>
-            </Tr>
-          </Thead>
-          <Tbody>
-            {!tenants || tenants.length === 0 ? (
-              <Tr>
-                <Td colSpan={5} className="text-center py-12 text-gray-500">
-                  <div className="flex flex-col items-center justify-center">
-                    <Users className="h-10 w-10 text-gray-300 mb-2" />
-                    <p>No tenants registered yet.</p>
-                  </div>
-                </Td>
-              </Tr>
-            ) : (
-              tenants.map((tenant) => (
-                <Tr key={tenant.id}>
-                  <Td className="font-medium text-gray-900">{tenant.full_name}</Td>
-                  <Td>{tenant.phone || '-'}</Td>
-                  <Td className="font-mono text-sm">{tenant.id_number || 'N/A'}</Td>
-                  <Td className="text-sm text-gray-500">{new Date(tenant.created_at).toLocaleDateString()}</Td>
-                  <Td className="text-right">
-                    <EditTenantModal tenant={tenant} />
-                  </Td>
-                </Tr>
-              ))
-            )}
-          </Tbody>
-        </Table>
-      </Card>
-    </div>
-  )
+  return <TenantsClient tenants={tenants} roomsList={roomsList} />
 }

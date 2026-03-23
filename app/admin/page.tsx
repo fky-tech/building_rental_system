@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Building2, Home, Users, CreditCard } from 'lucide-react'
+import { formatEthiopianDate } from '@/lib/ethiopian-calendar'
 
 export default async function AdminDashboard() {
   const supabase = await createClient()
@@ -30,7 +31,7 @@ export default async function AdminDashboard() {
   const recentOwners = (recentOwnersData as any[])?.map(o => ({
     id: o.id,
     name: o.profiles?.full_name || 'Unknown',
-    joined: new Date(o.created_at).toLocaleDateString(),
+    joined: formatEthiopianDate(new Date(o.created_at)),
     status: o.status
   })) || []
 

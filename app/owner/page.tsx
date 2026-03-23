@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardHeader } from '@/components/ui/Card'
-import { Home, CheckCircle, AlertCircle, TrendingDown, Clock } from 'lucide-react'
+import { gregorianToEthiopian } from '@/lib/ethiopian-calendar'
 
 export default async function OwnerDashboardPage() {
   const supabase = await createClient()
@@ -52,7 +51,9 @@ export default async function OwnerDashboardPage() {
   
   const paidLeaseIds = monthlyPayments?.map(p => p.lease_id).filter(Boolean) || []
 
-  const todayDay = new Date().getDate()
+  // Use Ethiopian today's day for due-day comparison (Ethiopian calendar is the system)
+  const ethToday = gregorianToEthiopian(now)
+  const todayEthDay = ethToday.day
   
   // 2. Get detailed info for UNPAID active leases in this building
   const { data: activeLeases } = await supabase
@@ -63,8 +64,8 @@ export default async function OwnerDashboardPage() {
 
   const unpaidLeasesDetail = activeLeases?.filter(lease => {
     const isPaid = paidLeaseIds.includes(lease.id)
-    // User wants it to count when due day arrives
-    return !isPaid && todayDay >= (lease as any).payment_due_day
+    // Compare Ethiopian today's day vs due day (both are in Ethiopian calendar)
+    return !isPaid && todayEthDay >= (lease as any).payment_due_day
   }).map(l => ({
     id: l.id,
     due_day: (l as any).payment_due_day,
@@ -96,7 +97,7 @@ export default async function OwnerDashboardPage() {
     room_number: p.leases?.rooms?.room_number || '?'
   })) || []
 
-  const stats = [
+  const stats: any[] = [
     { name: 'Total Rooms', value: totalRooms || 0, color: 'text-blue-600', bg: 'bg-blue-100', type: 'total' },
     { name: 'Occupied Rooms', value: occupiedRooms || 0, color: 'text-green-600', bg: 'bg-green-100', type: 'occupied' },
     { name: 'Available Rooms', value: availableRooms || 0, color: 'text-yellow-600', bg: 'bg-yellow-100', type: 'available' },

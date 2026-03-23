@@ -97,3 +97,52 @@ export async function deleteRoomAction(id: string) {
     return { success: false, error: err.message || 'An unexpected error occurred' }
   }
 }
+
+/**
+ * Sync room statuses: set rooms to 'available' if they have no active lease.
+ * This fixes orphaned 'occupied' rooms when tenants/leases are deleted directly from the DB.
+ */
+export async function syncRoomStatusesAction(buildingId: string) {
+  try {
+    const supabase = await createClient()
+
+    // Find all rooms in this building that are marked occupied
+    const { data: occupiedRooms } = await supabase
+      .from('rooms')
+      .select('id')
+      .eq('building_id', buildingId)
+      .eq('status', 'occupied')
+
+    if (!occupiedRooms || occupiedRooms.length === 0) {
+      return { success: true, fixed: 0 }
+    }
+
+    // For each occupied room, check if it has an active lease
+    const roomIds = occupiedRooms.map(r => r.id)
+    const { data: activeLeases } = await supabase
+      .from('leases')
+      .select('room_id')
+      .in('room_id', roomIds)
+      .eq('status', 'active')
+
+    const activeRoomIds = new Set(activeLeases?.map(l => l.room_id) || [])
+    const orphanedRoomIds = roomIds.filter(id => !activeRoomIds.has(id))
+
+    if (orphanedRoomIds.length === 0) {
+      return { success: true, fixed: 0 }
+    }
+
+    // Fix orphaned rooms
+    const { error } = await supabase
+      .from('rooms')
+      .update({ status: 'available' })
+      .in('id', orphanedRoomIds)
+
+    if (error) throw error
+
+    return { success: true, fixed: orphanedRoomIds.length }
+  } catch (err: any) {
+    console.error('Error syncing room statuses:', err)
+    return { success: false, error: err.message || 'An unexpected error occurred' }
+  }
+}

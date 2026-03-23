@@ -4,6 +4,7 @@ import React from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSidebar } from './SidebarProvider'
+import { useLanguage } from '@/lib/LanguageContext'
 import { 
   Menu, X, LogOut, ChevronLeft, ChevronRight,
   LayoutDashboard, Users, Building, CreditCard, BarChart, Settings, Home
@@ -14,6 +15,7 @@ type NavItem = {
   name: string
   href: string
   icon: string // Changed to string for serialization
+  translationKey?: string
 }
 
 const IconMap: Record<string, any> = {
@@ -38,6 +40,7 @@ export function Sidebar({
   type?: 'admin' | 'owner'
 }) {
   const { isCollapsed, toggleSidebar } = useSidebar()
+  const { t } = useLanguage()
   const pathname = usePathname()
 
   const isOwner = type === 'owner'
@@ -69,6 +72,7 @@ export function Sidebar({
       <nav className={`flex-1 px-3 py-6 space-y-1 ${isCollapsed ? 'overflow-visible' : 'overflow-y-auto no-scrollbar'}`}>
         {navItems.map((item) => {
           const Icon = IconMap[item.icon] || Home
+          const translatedName = item.translationKey ? t(item.translationKey) : item.name
           // Fixed active logic: Dashboard only active on exact match
           const isActive = (item.href === '/admin' || item.href === '/owner') 
             ? pathname === item.href 
@@ -84,10 +88,10 @@ export function Sidebar({
               `}
             >
               <Icon className={`h-5 w-5 shrink-0 ${isActive ? activeIconColor : iconColor} group-hover:scale-110 transition-transform`} />
-              {!isCollapsed && <span className="ml-3 truncate">{item.name}</span>}
+              {!isCollapsed && <span className="ml-3 truncate">{translatedName}</span>}
               {isCollapsed && (
                  <div className="absolute left-full ml-4 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-xl">
-                    {item.name}
+                    {translatedName}
                  </div>
               )}
             </Link>
@@ -105,7 +109,7 @@ export function Sidebar({
             `}
            >
              <LogOut className={`h-5 w-5 shrink-0`} />
-             {!isCollapsed && <span className="ml-3">Sign out</span>}
+             {!isCollapsed && <span className="ml-3">{t('nav.signout')}</span>}
            </button>
         </form>
       </div>

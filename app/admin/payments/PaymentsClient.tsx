@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Table, Thead, Tbody, Tr, Th, Td } from '@/components/ui/Table'
 import { Check, Clock, AlertCircle, X, Info, Building as BuildingIcon, User, Home } from 'lucide-react'
+import { gregStrToEthiopian } from '@/lib/ethiopian-calendar'
 
 export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) {
   const [filter, setFilter] = useState<'all' | 'verified' | 'unassigned'>('all')
@@ -43,7 +44,7 @@ export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) 
             ) : (
               filtered.map((payment) => (
                 <Tr key={payment.id}>
-                  <Td>{payment.payment_date}</Td>
+                  <Td>{gregStrToEthiopian(payment.payment_date)}</Td>
                   <Td className="font-mono text-sm">{payment.transaction_id || '-'}</Td>
                   <Td className="capitalize">{payment.payment_method}</Td>
                   <Td className="font-medium text-gray-900">Birr {payment.amount}</Td>
