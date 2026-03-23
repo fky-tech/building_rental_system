@@ -50,6 +50,56 @@ export async function createRoomAction(prevState: any, formData: FormData) {
   }
 }
 
+export async function createBulkRoomsJSONAction(prevState: any, formData: FormData) {
+  try {
+    const building_id = formData.get('building_id') as string
+    const bulkDataStr = formData.get('bulk_data') as string
+
+    if (!building_id || !bulkDataStr) {
+      return { success: false, error: 'Missing required data' }
+    }
+
+    const rooms = JSON.parse(bulkDataStr)
+    if (!Array.isArray(rooms) || rooms.length === 0) {
+      return { success: false, error: 'No rooms provided' }
+    }
+
+    const supabase = await createClient()
+    
+    // Verify ownership
+    const { data: { user } } = await supabase.auth.getUser()
+    const { data: building } = await supabase
+        .from('buildings')
+        .select('owner_id, owners!inner(user_id)')
+        .eq('id', building_id)
+        // @ts-ignore
+        .eq('owners.user_id', user?.id)
+        .single()
+    
+    if (!building) return { success: false, error: 'Unauthorized or building not found' }
+
+    const roomsToInsert = rooms.map(r => ({
+      building_id,
+      room_number: r.room_number,
+      floor_number: r.floor_number ? parseInt(r.floor_number) : null,
+      room_type: r.room_type,
+      rent_amount: parseFloat(r.rent_amount),
+      description: r.description || null,
+      status: 'available'
+    }))
+
+    const { error } = await supabase.from('rooms').insert(roomsToInsert)
+
+    if (error) throw error
+
+    revalidatePath('/owner/rooms')
+    return { success: true, message: `${roomsToInsert.length} rooms created successfully` }
+  } catch (err: any) {
+    console.error('Error creating bulk rooms:', err)
+    return { success: false, error: err.message || 'An unexpected error occurred' }
+  }
+}
+
 export async function updateRoomAction(prevState: any, formData: FormData) {
   try {
     const id = formData.get('id') as string
