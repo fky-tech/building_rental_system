@@ -145,7 +145,7 @@ export function AddTenantModal({ rooms }: { rooms: RoomOption[] }) {
                             </div>
 
                             <div>
-                                <label htmlFor="monthly_rent" className="block text-sm font-medium text-gray-700 mb-1">Monthly Rent ($)</label>
+                                <label htmlFor="monthly_rent" className="block text-sm font-medium text-gray-700 mb-1">Monthly Rent (Birr)</label>
                                 <input id="monthly_rent" name="monthly_rent" type="number" step="0.01" required placeholder="0.00" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
 

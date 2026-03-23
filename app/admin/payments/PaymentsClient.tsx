@@ -46,7 +46,7 @@ export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) 
                   <Td>{payment.payment_date}</Td>
                   <Td className="font-mono text-sm">{payment.transaction_id || '-'}</Td>
                   <Td className="capitalize">{payment.payment_method}</Td>
-                  <Td className="font-medium text-gray-900">${payment.amount}</Td>
+                  <Td className="font-medium text-gray-900">Birr {payment.amount}</Td>
                   <Td>
                     {payment.status === 'verified' && <span className="inline-flex items-center text-green-700 bg-green-100 px-2 py-1 text-xs rounded-full"><Check className="w-3 h-3 mr-1"/> Verified</span>}
                     {payment.status === 'pending' && <span className="inline-flex items-center text-yellow-700 bg-yellow-100 px-2 py-1 text-xs rounded-full"><Clock className="w-3 h-3 mr-1"/> Pending</span>}
@@ -112,7 +112,7 @@ export function PaymentsClient({ initialPayments }: { initialPayments: any[] }) 
                    </div>
                    <div className="flex justify-between text-sm py-1 border-b border-gray-50">
                       <span className="text-gray-500">Amount Paid</span>
-                      <span className="font-bold text-gray-900">${selectedPayment.amount}</span>
+                      <span className="font-bold text-gray-900">Birr {selectedPayment.amount}</span>
                    </div>
                    <div className="flex justify-between text-sm py-1 border-b border-gray-50">
                       <span className="text-gray-500">Status</span>

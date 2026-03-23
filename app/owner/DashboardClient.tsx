@@ -121,7 +121,7 @@ export function DashboardClient({ stats, unpaidLeases, recentPayments }: {
                           <div className="text-xs text-gray-500">Room {payment.room_number}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-emerald-600">
-                          ${payment.amount}
+                          Birr {payment.amount}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {payment.date}
@@ -190,7 +190,7 @@ export function DashboardClient({ stats, unpaidLeases, recentPayments }: {
                                    <span>Due: Day {lease.due_day}</span>
                                 </div>
                                 <div className="font-bold text-red-600">
-                                   Amount: ${lease.monthly_rent}
+                                   Amount: Birr {lease.monthly_rent}
                                 </div>
                              </div>
                           </div>

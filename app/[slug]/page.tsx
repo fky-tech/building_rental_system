@@ -91,7 +91,7 @@ export default async function TenantSubdomainPage({ params }: { params: { slug: 
                         <h3 className="text-xl font-bold text-gray-900">Room {room.room_number}</h3>
                         <p className="text-sm text-gray-500">Floor {room.floor_number}</p>
                      </div>
-                     <span className="text-lg font-bold text-emerald-600">${room.rent_amount}/mo</span>
+                     <span className="text-lg font-bold text-emerald-600">Birr {room.rent_amount}/mo</span>
                   </div>
                   <p className="text-gray-600 text-sm flex-1 mb-4">{room.description || 'No additional details provided.'}</p>
                   <button className="w-full bg-blue-600 text-white font-medium py-2 rounded flex items-center justify-center hover:bg-blue-700 transition">

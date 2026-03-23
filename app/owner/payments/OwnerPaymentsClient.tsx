@@ -43,7 +43,7 @@ export function OwnerPaymentsClient({ initialPayments }: { initialPayments: any[
                      {/* @ts-ignore */}
                      {payment.leases && <span className="text-xs text-gray-500">Room {payment.leases?.rooms?.room_number}</span>}
                   </Td>
-                  <Td className="font-medium text-emerald-600">${payment.amount}</Td>
+                  <Td className="font-medium text-emerald-600">Birr {payment.amount}</Td>
                   <Td>
                      <span className="capitalize block">{payment.payment_method}</span>
                      <span className="text-xs text-gray-500 font-mono">{payment.transaction_id || '-'}</span>
@@ -106,7 +106,7 @@ export function OwnerPaymentsClient({ initialPayments }: { initialPayments: any[
                    </div>
                    <div className="flex justify-between text-sm py-1 border-b border-gray-50">
                       <span className="text-gray-500">Amount Paid</span>
-                      <span className="font-bold text-gray-900">${selectedPayment.amount}</span>
+                      <span className="font-bold text-gray-900">Birr {selectedPayment.amount}</span>
                    </div>
                    <div className="flex justify-between text-sm py-1 border-b border-gray-50">
                       <span className="text-gray-500">Status</span>

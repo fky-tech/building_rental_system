@@ -80,7 +80,7 @@ export default async function OwnerReportsPage() {
             <TrendingUp className="h-8 w-8" />
           </div>
           <p className="text-sm font-medium text-gray-500">Monthly Income (Verified)</p>
-          <p className="mt-1 text-3xl font-bold text-gray-900">${monthlyIncome.toFixed(2)}</p>
+          <p className="mt-1 text-3xl font-bold text-gray-900">Birr {monthlyIncome.toFixed(2)}</p>
         </Card>
 
         <Card className="flex flex-col items-center justify-center p-6 text-center">

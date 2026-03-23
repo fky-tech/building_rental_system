@@ -49,7 +49,7 @@ export function Sidebar({
   const borderColor = isOwner ? "border-slate-800" : "border-gray-200"
 
   return (
-    <aside className={`${isCollapsed ? 'w-20' : 'w-64'} ${bgColor} border-r ${borderColor} flex flex-col transition-all duration-300 ease-in-out h-screen sticky top-0 z-40 group`}>
+    <aside className={`${isCollapsed ? 'w-20' : 'w-64'} ${bgColor} border-r ${borderColor} flex flex-col transition-all duration-300 ease-in-out h-screen sticky top-0 z-40`}>
       {/* Header */}
       <div className={`h-16 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between px-6'} border-b ${borderColor} shrink-0`}>
         {!isCollapsed && (
@@ -66,25 +66,27 @@ export function Sidebar({
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto no-scrollbar">
+      <nav className={`flex-1 px-3 py-6 space-y-1 ${isCollapsed ? 'overflow-visible' : 'overflow-y-auto no-scrollbar'}`}>
         {navItems.map((item) => {
           const Icon = IconMap[item.icon] || Home
-          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href))
+          // Fixed active logic: Dashboard only active on exact match
+          const isActive = (item.href === '/admin' || item.href === '/owner') 
+            ? pathname === item.href 
+            : pathname.startsWith(item.href)
           
           return (
             <Link 
               key={item.name} 
               href={item.href} 
-              title={isCollapsed ? item.name : ''}
               className={`
-                flex items-center ${isCollapsed ? 'justify-center' : 'px-3'} py-3 text-sm font-medium rounded-xl transition-all duration-200 group
+                flex items-center ${isCollapsed ? 'justify-center' : 'px-3'} py-3 text-sm font-medium rounded-xl transition-all duration-200 group relative
                 ${isActive ? activeColor : `${textColor} hover:bg-opacity-80 hover:${isOwner ? 'bg-slate-800' : 'bg-gray-50'}`}
               `}
             >
               <Icon className={`h-5 w-5 shrink-0 ${isActive ? activeIconColor : iconColor} group-hover:scale-110 transition-transform`} />
               {!isCollapsed && <span className="ml-3 truncate">{item.name}</span>}
               {isCollapsed && (
-                 <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap">
+                 <div className="absolute left-full ml-4 px-2 py-1 bg-gray-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 whitespace-nowrap shadow-xl">
                     {item.name}
                  </div>
               )}

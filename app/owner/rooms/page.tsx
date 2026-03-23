@@ -67,7 +67,7 @@ export default async function OwnerRoomsPage() {
                   {/* @ts-ignore */}
                   <Td className="text-gray-600 font-medium">{room.buildings?.name}</Td>
                   <Td>Fl {room.floor_number} - <span className="capitalize">{room.room_type}</span></Td>
-                  <Td className="font-medium text-emerald-600">${room.rent_amount}</Td>
+                  <Td className="font-medium text-emerald-600">Birr {room.rent_amount}</Td>
                   <Td>
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       room.status === 'available' ? 'bg-green-100 text-green-800' : 

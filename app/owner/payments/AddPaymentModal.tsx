@@ -118,7 +118,7 @@ export function AddPaymentModal({ leases }: { leases: LeaseOption[] }) {
                     </div>
 
                     <div className="col-span-2 md:col-span-1">
-                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Total Amount ($)</label>
+                        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">Total Amount (Birr)</label>
                         <input id="amount" name="amount" type="number" step="0.01" required placeholder="0.00" className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                     </div>
 
