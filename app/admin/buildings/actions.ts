@@ -70,18 +70,10 @@ export async function updateBuildingAction(prevState: any, formData: FormData) {
 
     if (buildingError) throw buildingError
 
-    // 2. Synchronize owner status
-    const { error: ownerError } = await supabase
-      .from('owners')
-      .update({ status: status === 'active' ? 'active' : 'inactive' })
-      .eq('id', owner_id)
-
-    if (ownerError) throw ownerError
-
     revalidatePath('/admin/buildings')
     revalidatePath('/', 'layout')
 
-    return { success: true, message: 'Building and owner status updated' }
+    return { success: true, message: 'Building updated successfully' }
   } catch (err: any) {
     console.error('Error updating building:', err)
     return { success: false, error: 'Failed to update building.' }

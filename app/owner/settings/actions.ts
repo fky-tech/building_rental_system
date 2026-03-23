@@ -5,11 +5,12 @@ import { revalidatePath } from 'next/cache'
 
 export async function updateProfileAction(prevState: any, formData: FormData) {
   try {
-    const full_name = formData.get('full_name') as string
-    const phone = formData.get('phone') as string
-    const email = formData.get('email') as string
+    const full_name = (formData.get('full_name') as string)?.trim()
+    const phone = (formData.get('phone') as string)?.trim()
+    const email = (formData.get('email') as string)?.trim().toLowerCase()
 
     if (!full_name) return { success: false, error: 'Full name is required' }
+    if (email && !email.includes('@')) return { success: false, error: 'Invalid email format' }
 
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
