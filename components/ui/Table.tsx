@@ -22,8 +22,8 @@ export function Tbody({ children }: { children: React.ReactNode }) {
   return <tbody className="divide-y divide-gray-100">{children}</tbody>
 }
 
-export function Tr({ children }: { children: React.ReactNode }) {
-  return <tr className="hover:bg-gray-50 bg-white">{children}</tr>
+export function Tr({ children, className = '', ...props }: React.HTMLAttributes<HTMLTableRowElement>) {
+  return <tr className={`hover:bg-gray-50 bg-white ${className}`} {...props}>{children}</tr>
 }
 
 export function Th({ children, className = '', ...props }: React.ThHTMLAttributes<HTMLTableCellElement>) {

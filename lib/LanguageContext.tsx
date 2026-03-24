@@ -90,6 +90,12 @@ const translations: Record<Language, Record<string, string>> = {
     'rooms.floor_type': 'Floor / Type',
     'rooms.floor_abbr': 'Floor',
     'rooms.type_default': 'N/A',
+    'rooms.single_room': 'Single Room',
+    'rooms.bulk_add': 'Bulk Add',
+    'rooms.how_many': 'How many rooms?',
+    'rooms.generate_table': 'Generate Edit Table',
+    'rooms.remove': 'Remove',
+    'rooms.add_row': '+ Add Row',
 
     // Tenants
     'tenants.title': 'Tenants',
@@ -316,6 +322,12 @@ const translations: Record<Language, Record<string, string>> = {
     'rooms.floor_type': 'ፎቅ / አይነት',
     'rooms.floor_abbr': 'ፎቅ',
     'rooms.type_default': 'ሌላ',
+    'rooms.single_room': 'አንድ ክፍል',
+    'rooms.bulk_add': 'በብዛት ጨምር',
+    'rooms.how_many': 'ስንት ክፍሎች?',
+    'rooms.generate_table': 'ሰንጠረዥ ፍጠር',
+    'rooms.remove': 'አስወግድ',
+    'rooms.add_row': '+ ተጨማሪ ተርታ',
 
     // Tenants
     'tenants.title': 'ተከራዮች',
@@ -467,22 +479,22 @@ const translations: Record<Language, Record<string, string>> = {
 }
 
 const LanguageContext = createContext<LanguageContextType>({
-  language: 'en',
+  language: 'am',
   setLanguage: () => {},
   t: (key) => key,
 })
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>('en')
+  const [language, setLanguageState] = useState<Language>('am')
 
   useEffect(() => {
-    const saved = localStorage.getItem('owner_language') as Language
+    const saved = localStorage.getItem('owner_lang_pref') as Language
     if (saved === 'en' || saved === 'am') setLanguageState(saved)
   }, [])
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang)
-    localStorage.setItem('owner_language', lang)
+    localStorage.setItem('owner_lang_pref', lang)
   }
 
   const t = (key: string): string => {

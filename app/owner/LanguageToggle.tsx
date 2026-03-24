@@ -5,8 +5,8 @@ import { Globe, Check, ChevronDown } from 'lucide-react'
 import { useLanguage } from '@/lib/LanguageContext'
 
 const languages = [
-  { code: 'en' as const, name: 'English' },
-  { code: 'am' as const, name: 'Amharic (አማርኛ)' }
+  { code: 'am' as const, name: 'አማርኛ' },
+  { code: 'en' as const, name: 'English' }
 ]
 
 export function LanguageToggle() {

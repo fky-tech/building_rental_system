@@ -38,7 +38,7 @@ create table public.rooms (
     building_id uuid references public.buildings(id) not null,
     room_number text not null,
     floor_number integer,
-    room_type text check (room_type in ('office', 'shop')),
+    room_type text check (room_type in ('office', 'shop', 'single', 'double', 'studio', 'apartment')),
     rent_amount numeric not null,
     status text default 'available' check (status in ('available', 'occupied', 'maintenance')),
     description text,

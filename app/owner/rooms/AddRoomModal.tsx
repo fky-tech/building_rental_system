@@ -141,14 +141,14 @@ export function AddRoomModal({ building }: { building: BuildingInfo }) {
                     className={`pb-2 px-4 text-sm font-medium transition-colors ${viewMode === 'single' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                     onClick={() => { setViewMode('single'); setError(null); }}
                   >
-                    Single Room
+                    {t('rooms.single_room')}
                   </button>
                   <button 
                     type="button"
                     className={`pb-2 px-4 text-sm font-medium transition-colors ${viewMode !== 'single' ? 'border-b-2 border-blue-600 text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
                     onClick={() => { setViewMode('bulk_setup'); setError(null); }}
                   >
-                    Bulk Add
+                    {t('rooms.bulk_add')}
                   </button>
                 </div>
 
@@ -205,10 +205,10 @@ export function AddRoomModal({ building }: { building: BuildingInfo }) {
                     {viewMode === 'bulk_setup' && (
                         <div className="col-span-2 space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">How many rooms?</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">{t('rooms.how_many')}</label>
                                 <input type="number" min="1" max="50" value={numRooms} onChange={(e) => setNumRooms(parseInt(e.target.value) || 1)} className="w-full h-10 rounded-md border border-gray-300 px-3 focus:ring-blue-500 focus:border-blue-500" />
                             </div>
-                            <Button type="button" variant="outline" className="w-full" onClick={generateTable}>Generate Edit Table</Button>
+                            <Button type="button" variant="outline" className="w-full" onClick={generateTable}>{t('rooms.generate_table')}</Button>
                         </div>
                     )}
 
@@ -221,7 +221,7 @@ export function AddRoomModal({ building }: { building: BuildingInfo }) {
                                         <th className="px-3 py-2 w-20">{t('rooms.floor')}</th>
                                         <th className="px-3 py-2">{t('rooms.type')}</th>
                                         <th className="px-3 py-2 w-32">{t('rooms.rent_birr')}</th>
-                                        <th className="px-3 py-2 text-center">Remove</th>
+                                        <th className="px-3 py-2 text-center">{t('rooms.remove')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -249,7 +249,7 @@ export function AddRoomModal({ building }: { building: BuildingInfo }) {
                                             <td className="p-2 text-center">
                                                 <button type="button" onClick={() => setBulkRooms(prev => prev.filter(r => r.id !== room.id))} className="text-red-500 hover:text-red-700 text-xs font-medium flex items-center justify-center w-full bg-red-50 hover:bg-red-100 rounded px-2 py-1 transition-colors">
                                                     <X className="h-3 w-3 mr-1" />
-                                                    Remove
+                                                    {t('rooms.remove')}
                                                 </button>
                                             </td>
                                         </tr>
@@ -262,7 +262,7 @@ export function AddRoomModal({ building }: { building: BuildingInfo }) {
                             <div className="mt-2 text-right">
                                 <Button type="button" variant="outline" size="sm" onClick={() => {
                                     setBulkRooms([...bulkRooms, { id: Math.random().toString(36).substr(2, 9), room_number: '', floor_number: '', room_type: 'single', rent_amount: '' }])
-                                }}>+ Add Row</Button>
+                                }}>{t('rooms.add_row')}</Button>
                             </div>
                         </div>
                     )}
