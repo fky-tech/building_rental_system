@@ -2,23 +2,36 @@
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/Button'
-import { UserCog, CheckCircle, X } from 'lucide-react'
-import { updateTenantAction, endLeaseAction } from './actions'
+import { UserCog, CheckCircle, X, Clock } from 'lucide-react'
+import { updateTenantAction, endLeaseAction, updateLeaseDueAction } from './actions'
 import { useRouter } from 'next/navigation'
 import { useLanguage } from '@/lib/LanguageContext'
 
 export function EditTenantModal({ tenant }: { tenant: any }) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [dueLoading, setDueLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dueError, setDueError] = useState<string | null>(null)
+  const [dueSuccess, setDueSuccess] = useState(false)
   const [success, setSuccess] = useState(false)
   const { t } = useLanguage()
   const router = useRouter()
+
+  // Local state for due day + time inline editing
+  const [dueDay, setDueDay] = useState<number>(tenant.lease_due_day ?? 5)
+  const [dueTime, setDueTime] = useState<string>(
+    tenant.lease_due_time
+      ? String(tenant.lease_due_time).slice(0, 5)   // trim seconds
+      : '09:00'
+  )
 
   const handleClose = () => {
     setOpen(false)
     setTimeout(() => {
       setError(null)
+      setDueError(null)
+      setDueSuccess(false)
       setLoading(false)
       setSuccess(false)
     }, 200)
@@ -42,6 +55,23 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
       setError(result.error || t('common.error'))
       setLoading(false)
     }
+  }
+
+  const handleUpdateDue = async () => {
+    if (!tenant.active_lease_id) return
+    setDueLoading(true)
+    setDueError(null)
+    setDueSuccess(false)
+
+    const result = await updateLeaseDueAction(tenant.active_lease_id, dueDay, dueTime)
+
+    if (result.success) {
+      setDueSuccess(true)
+      router.refresh()
+    } else {
+      setDueError(result.error || t('common.error'))
+    }
+    setDueLoading(false)
   }
 
   return (
@@ -116,6 +146,60 @@ export function EditTenantModal({ tenant }: { tenant: any }) {
                       </Button>
                   </div>
                 </form>
+
+                {/* Rent Due Day & Time – only shown when there's an active lease */}
+                {tenant.active_lease_id && (
+                  <div className="pt-4 border-t border-blue-100 mt-2">
+                    <h3 className="text-sm font-bold text-blue-600 mb-3 flex items-center gap-1.5">
+                      <Clock className="h-4 w-4" />
+                      {t('tenants.update_due')}
+                    </h3>
+
+                    {dueError && (
+                      <div className="p-2 mb-3 bg-red-50 text-red-800 text-xs rounded border border-red-100">
+                        {dueError}
+                      </div>
+                    )}
+                    {dueSuccess && (
+                      <div className="p-2 mb-3 bg-green-50 text-green-800 text-xs rounded border border-green-100 flex items-center gap-1">
+                        <CheckCircle className="h-3.5 w-3.5" /> {t('tenants.due_updated')}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('tenants.due_day')}</label>
+                        <input
+                          type="number"
+                          min={1}
+                          max={30}
+                          value={dueDay}
+                          onChange={e => setDueDay(Number(e.target.value))}
+                          className="w-full h-9 rounded-md border border-gray-300 px-3 text-sm focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">{t('tenants.due_time')}</label>
+                        <input
+                          type="time"
+                          value={dueTime}
+                          onChange={e => setDueTime(e.target.value)}
+                          className="w-full h-9 rounded-md border border-gray-300 px-3 text-sm focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-blue-200 text-blue-700 hover:bg-blue-50"
+                      disabled={dueLoading}
+                      onClick={handleUpdateDue}
+                    >
+                      {dueLoading ? t('tenants.saving') : t('tenants.update_due_btn')}
+                    </Button>
+                  </div>
+                )}
 
                 <div className="pt-6 border-t border-gray-200 mt-6 text-left">
                    <h3 className="text-sm font-bold text-red-600 mb-4 uppercase tracking-wider">{t('tenants.danger_zone')}</h3>

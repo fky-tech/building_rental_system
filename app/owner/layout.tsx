@@ -1,5 +1,5 @@
 import React from 'react'
-import { LayoutDashboard, Users, CreditCard, BarChart, Settings, LogOut, Home } from 'lucide-react'
+import { LayoutDashboard, Users, CreditCard, BarChart, Settings, Home, MessageSquare } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
@@ -38,6 +38,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
     { name: 'Tenants', href: '/owner/tenants', icon: 'Users', translationKey: 'nav.tenants' },
     { name: 'Payments', href: '/owner/payments', icon: 'CreditCard', translationKey: 'nav.payments' },
     { name: 'Reports', href: '/owner/reports', icon: 'BarChart', translationKey: 'nav.reports' },
+    { name: 'Messages', href: '/owner/messages', icon: 'MessageSquare', translationKey: 'nav.messages' },
     { name: 'Settings', href: '/owner/settings', icon: 'Settings', translationKey: 'nav.settings' },
   ]
 

@@ -3,17 +3,21 @@
 import { useState } from 'react'
 import { Card, CardHeader } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Home, CheckCircle, AlertCircle, TrendingDown, Clock, X, MessageSquare, Phone, User, Calendar, HelpCircle } from 'lucide-react'
-import { gregStrToEthiopian } from '@/lib/ethiopian-calendar'
+import { Home, CheckCircle, AlertCircle, TrendingDown, Clock, X, Phone, Calendar, HelpCircle } from 'lucide-react'
+import { gregStrToEthiopian, formatEthiopianDate } from '@/lib/ethiopian-calendar'
 import { useLanguage } from '@/lib/LanguageContext'
+
+import Link from 'next/link'
 
 type UnpaidLease = {
   id: string
   due_day: number
   monthly_rent: number
+  tenant_id: string
   tenant_name: string
   phone: string
   room_number: string
+  room_type: string
 }
 
 type Stat = {
@@ -33,13 +37,14 @@ type RecentPayment = {
   room_number: string
 }
 
-export function DashboardClient({ stats, unpaidLeases, recentPayments }: { 
+export function DashboardClient({ stats, unpaidLeases, recentPayments, failedSmsCount }: { 
     stats: Stat[], 
     unpaidLeases: UnpaidLease[],
     recentPayments: RecentPayment[]
+    failedSmsCount: number
   }) {
   const [showUnpaidModal, setShowUnpaidModal] = useState(false)
-  const [sendingSms, setSendingSms] = useState<string | null>(null)
+  const [hideSmsAlert, setHideSmsAlert] = useState(false)
   const { t } = useLanguage()
 
   const iconMap: Record<string, any> = {
@@ -56,20 +61,34 @@ export function DashboardClient({ stats, unpaidLeases, recentPayments }: {
     unpaid: 'dashboard.unpaid_rents'
   }
 
-  const handleSendSms = (leaseId: string) => {
-    setSendingSms(leaseId)
-    // Mock SMS sending
-    setTimeout(() => {
-      setSendingSms(null)
-      alert('Reminder SMS sent successfully!')
-    }, 1500)
-  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900">{t('dashboard.title')}</h1>
       </div>
+
+      {/* SMS failure alert */}
+      {failedSmsCount > 0 && !hideSmsAlert && (
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-900">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4 shrink-0 text-orange-500" />
+            <span>
+              {t('sms.failed_banner').replace('{count}', String(failedSmsCount))}
+            </span>
+            <Link href="/owner/messages" className="underline font-medium hover:text-orange-700 ml-1">
+              {t('nav.messages')} →
+            </Link>
+          </div>
+          <button
+            onClick={() => setHideSmsAlert(true)}
+            className="text-orange-400 hover:text-orange-600 shrink-0"
+            aria-label="Dismiss"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => {
@@ -181,61 +200,48 @@ export function DashboardClient({ stats, unpaidLeases, recentPayments }: {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {unpaidLeases.map((lease) => (
-                    <div key={lease.id} className="bg-gray-50 rounded-xl border border-gray-100 p-4 hover:border-red-200 transition-colors group">
-                       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                          <div className="space-y-1">
-                             <div className="flex items-center gap-2">
-                                <span className="text-gray-900 font-bold">{lease.tenant_name}</span>
-                                <span className="bg-white px-2 py-0.5 rounded border border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-tighter shadow-sm">
-                                  {t('dashboard.room')} {lease.room_number}
-                                </span>
-                             </div>
-                             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
-                                <div className="flex items-center gap-1">
-                                   <Phone className="h-3 w-3" />
-                                   <span>{lease.phone}</span>
-                                </div>
-                                <div className="flex items-center gap-1">
-                                   <Calendar className="h-3 w-3" />
-                                   <span>{t('dashboard.due')} {lease.due_day}</span>
-                                </div>
-                                <div className="font-bold text-red-600">
-                                   {t('dashboard.amount')}: {t('common.birr')} {lease.monthly_rent}
-                                </div>
-                             </div>
-                          </div>
+                  {unpaidLeases.map((lease) => {
 
-                          <div className="flex items-center gap-2">
-                             <Button 
-                               variant="outline" 
-                               size="sm" 
-                               className="border-gray-200 text-gray-700 hover:bg-white shadow-sm"
-                               onClick={() => window.location.href = `tel:${lease.phone}`}
-                             >
-                                <Phone className="h-3.5 w-3.5 mr-1.5" />
-                                {t('dashboard.call')}
-                             </Button>
-                             <Button 
-                               variant="primary" 
-                               size="sm" 
-                               className="bg-red-600 hover:bg-red-700 text-white shadow-sm shadow-red-200 border-none"
-                               disabled={sendingSms === lease.id}
-                               onClick={() => handleSendSms(lease.id)}
-                             >
-                                {sendingSms === lease.id ? (
-                                   <>{t('dashboard.sending')}</>
-                                ) : (
-                                   <>
-                                      <MessageSquare className="h-3.5 w-3.5 mr-1.5" />
-                                      {t('dashboard.send_reminder')}
-                                   </>
-                                )}
-                             </Button>
-                          </div>
-                       </div>
-                    </div>
-                  ))}
+                    return (
+                      <div key={lease.id} className="bg-gray-50 rounded-xl border border-gray-100 p-4 hover:border-red-200 transition-colors group">
+                         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                               <div className="flex items-center gap-2">
+                                  <span className="text-gray-900 font-bold">{lease.tenant_name}</span>
+                                  <span className="bg-white px-2 py-0.5 rounded border border-gray-200 text-[10px] font-bold text-gray-500 uppercase tracking-tighter shadow-sm">
+                                    {t('dashboard.room')} {lease.room_number}
+                                  </span>
+                               </div>
+                               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-gray-500">
+                                  <div className="flex items-center gap-1">
+                                     <Phone className="h-3 w-3" />
+                                     <span>{lease.phone}</span>
+                                  </div>
+                                  <div className="flex items-center gap-1">
+                                     <Calendar className="h-3 w-3" />
+                                     <span>{t('dashboard.due')} {lease.due_day}</span>
+                                  </div>
+                                  <div className="font-bold text-red-600">
+                                     {t('dashboard.amount')}: {t('common.birr')} {lease.monthly_rent}
+                                  </div>
+                               </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                               <Button 
+                                 variant="outline" 
+                                 size="sm" 
+                                 className="border-gray-200 text-gray-700 hover:bg-white shadow-sm"
+                                 onClick={() => window.location.href = `tel:${lease.phone}`}
+                               >
+                                  <Phone className="h-3.5 w-3.5 mr-1.5" />
+                                  {t('dashboard.call')}
+                               </Button>
+                            </div>
+                         </div>
+                      </div>
+                    )
+                  })}
                 </div>
               )}
             </div>

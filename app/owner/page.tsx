@@ -58,25 +58,42 @@ export default async function OwnerDashboardPage() {
   // 2. Get detailed info for UNPAID active leases in this building
   const { data: activeLeases } = await supabase
     .from('leases')
-    .select('id, payment_due_day, monthly_rent, rooms!inner(room_number, building_id), tenants!inner(full_name, phone)')
+    .select('id, payment_due_day, monthly_rent, rooms!inner(room_number, room_type, building_id), tenants!inner(id, full_name, phone)')
     .eq('status', 'active')
     .eq('rooms.building_id', currentBuilding?.id)
 
   const unpaidLeasesDetail = activeLeases?.filter(lease => {
     const isPaid = paidLeaseIds.includes(lease.id)
-    // Compare Ethiopian today's day vs due day (both are in Ethiopian calendar)
     return !isPaid && todayEthDay >= (lease as any).payment_due_day
   }).map(l => ({
     id: l.id,
     due_day: (l as any).payment_due_day,
     monthly_rent: l.monthly_rent,
     // @ts-ignore
+    tenant_id: l.tenants?.id || null,
+    // @ts-ignore
     tenant_name: l.tenants?.full_name || 'Unknown',
     // @ts-ignore
     phone: l.tenants?.phone || '-',
     // @ts-ignore
-    room_number: l.rooms?.room_number || '?'
+    room_number: l.rooms?.room_number || '?',
+    // @ts-ignore
+    room_type: l.rooms?.room_type || 'ክፍል',
   })) || []
+
+  // 3. Count failed SMS in the last 24 h for this owner's tenants
+  const ownerTenantIds = activeLeases?.map(l => (l as any).tenants?.id).filter(Boolean) || []
+  let failedSmsCount = 0
+  if (ownerTenantIds.length > 0) {
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count } = await supabase
+      .from('messages')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'failed')
+      .gte('created_at', since24h)
+      .in('tenant_id', ownerTenantIds)
+    failedSmsCount = count ?? 0
+  }
 
   // 3. Fetch 5 most recent payments for this building
   const { data: recentPaymentsData } = await supabase
@@ -109,6 +126,7 @@ export default async function OwnerDashboardPage() {
       stats={stats} 
       unpaidLeases={unpaidLeasesDetail} 
       recentPayments={recentPayments} 
+      failedSmsCount={failedSmsCount}
     />
   )
 }

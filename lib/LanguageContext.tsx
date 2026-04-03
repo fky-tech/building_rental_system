@@ -243,6 +243,37 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.password_success': 'Password updated. Signing you out in 2 seconds...',
     'settings.password_error': 'Failed to update password',
     'tenants.email': 'Email',
+    // SMS / due time
+    'tenants.due_time': 'Reminder Time (HH:MM)',
+    'tenants.update_due': 'Rent Due Day & Reminder Time',
+    'tenants.update_due_btn': 'Update Due Day & Time',
+    'tenants.due_updated': 'Due day & time updated.',
+    // SMS Analytics nav & page
+    'nav.messages': 'Messages',
+    'sms.history': 'SMS History',
+    'sms.status_sent': 'Sent',
+    'sms.status_failed': 'Failed',
+    'sms.status_pending': 'Pending',
+    'sms.total_sent': 'Total Sent',
+    'sms.total_failed': 'Total Failed',
+    'sms.no_messages': 'No SMS messages yet.',
+    'sms.sent_label': 'Sent!',
+    'sms.tenant': 'Tenant',
+    'sms.phone': 'Phone',
+    'sms.message_preview': 'Message',
+    'sms.sent_at': 'Sent At',
+    'sms.status': 'Status',
+    // Phase 2 – failure banner on dashboard
+    'sms.failed_banner': 'SMS delivery failed for {count} message(s) in the last 24 h. Check the Messages page.',
+    // Phase 3 – analytics filters & chart
+    'sms.filter_status': 'Filter by status',
+    'sms.filter_all': 'All statuses',
+    'sms.filter_tenant': 'Search tenant…',
+    'sms.filter_from': 'From date',
+    'sms.filter_to': 'To date',
+    'sms.clear_filters': 'Clear filters',
+    'sms.chart_title': 'Last 7 Days – Sent vs Failed',
+    'sms.retry_count': 'Retry #',
   },
   am: {
     // Nav
@@ -475,6 +506,37 @@ const translations: Record<Language, Record<string, string>> = {
     'settings.password_success': 'የይለፍ ቃል ተዘምኗል። ከ2 ሰርዓት ውጣ...',
     'settings.password_error': 'የይለፍ ቃልን ማዘምን አልተቻለም',
     'tenants.email': 'ኢሜይል',
+    // SMS / due time
+    'tenants.due_time': 'ማስታወሻ ሰዓት (ሰዓት:ደቂቃ)',
+    'tenants.update_due': 'የኪራይ ቀን እና ሰዓት',
+    'tenants.update_due_btn': 'ቀን እና ሰዓት አዘምን',
+    'tenants.due_updated': 'የኪራይ ቀን እና ሰዓት ተዘምኗል።',
+    // SMS Analytics nav & page
+    'nav.messages': 'ዜናዎች',
+    'sms.history': 'የኤስኤምኤስ ታሪክ',
+    'sms.status_sent': 'ተልኳል',
+    'sms.status_failed': 'አልተሳካም',
+    'sms.status_pending': 'በጥበቃ',
+    'sms.total_sent': 'ጠቅላላ የተላኩ',
+    'sms.total_failed': 'ጠቅላላ ያልተሳኩ',
+    'sms.no_messages': 'ምንም ኤስኤምኤስ አልተደረጉም።',
+    'sms.sent_label': 'ተልኳል!',
+    'sms.tenant': 'ተከራይ',
+    'sms.phone': 'ስልክ',
+    'sms.message_preview': 'ዜና',
+    'sms.sent_at': 'የተላከበት ሰዓት',
+    'sms.status': 'ሁኔታ',
+    // Phase 2 – failure banner
+    'sms.failed_banner': 'ባለፉት 24 ሰዓታት {count} ኤስኤምኤስ አልተላከም። የዜናዎችን ገጽ ይፈትሹ።',
+    // Phase 3 – analytics
+    'sms.filter_status': 'በሁኔታ ማጣሪያ',
+    'sms.filter_all': 'ሁሉም ሁኔታዎች',
+    'sms.filter_tenant': 'ተከራይ ፈልግ…',
+    'sms.filter_from': 'ከዚህ ቀን',
+    'sms.filter_to': 'እስከዚህ ቀን',
+    'sms.clear_filters': 'ማጣሪያ አጽዳ',
+    'sms.chart_title': 'ባለፉት 7 ቀናት – የተላኩ vs ያልተሳኩ',
+    'sms.retry_count': 'ድጋሚ #',
   }
 }
 

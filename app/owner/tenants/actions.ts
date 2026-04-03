@@ -62,7 +62,6 @@ export async function createTenantAction(prevState: any, formData: FormData) {
 
     if (leaseError) {
       console.error('Error creating lease:', leaseError)
-      // Rollback tenant creation perhaps? For simplicity, we just return error
       return { success: false, error: 'Tenant created, but lease failed. Please check lease manually.' }
     }
 
@@ -110,6 +109,35 @@ export async function updateTenantAction(prevState: any, formData: FormData) {
   }
 }
 
+/**
+ * Update the rent due day and time for a tenant's active lease.
+ * Called from EditTenantModal's dedicated "Rent Due Day & Time" section.
+ */
+export async function updateLeaseDueAction(
+  leaseId: string,
+  dueDay: number
+) {
+  try {
+    if (!leaseId) return { success: false, error: 'Lease ID required' }
+    if (dueDay < 1 || dueDay > 30) return { success: false, error: 'Due day must be 1–30' }
+
+    const supabase = await createClient()
+    const { error } = await supabase
+      .from('leases')
+      .update({ payment_due_day: dueDay })
+      .eq('id', leaseId)
+
+    if (error) throw error
+
+    revalidatePath('/owner/tenants')
+    revalidatePath('/owner')
+    return { success: true, message: 'Lease due day updated' }
+  } catch (err: any) {
+    console.error('Error updating lease due:', err)
+    return { success: false, error: err.message || 'Failed to update lease' }
+  }
+}
+
 export async function endLeaseAction(leaseId: string) {
   try {
     const supabase = await createClient()
@@ -119,7 +147,10 @@ export async function endLeaseAction(leaseId: string) {
     if (!lease) throw new Error('Lease not found')
 
     // 2. End the lease
-    const { error: leaseError } = await supabase.from('leases').update({ status: 'ended', end_date: new Date().toISOString().split('T')[0] }).eq('id', leaseId)
+    const { error: leaseError } = await supabase
+      .from('leases')
+      .update({ status: 'ended', end_date: new Date().toISOString().split('T')[0] })
+      .eq('id', leaseId)
     if (leaseError) throw leaseError
 
     // 3. Set room to available

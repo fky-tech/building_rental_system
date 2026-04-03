@@ -7,7 +7,7 @@ import { useSidebar } from './SidebarProvider'
 import { useLanguage } from '@/lib/LanguageContext'
 import { 
   Menu, X, LogOut, ChevronLeft, ChevronRight,
-  LayoutDashboard, Users, Building, CreditCard, BarChart, Settings, Home
+  LayoutDashboard, Users, Building, CreditCard, BarChart, Settings, Home, MessageSquare
 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
@@ -25,7 +25,8 @@ const IconMap: Record<string, any> = {
   CreditCard,
   BarChart,
   Settings,
-  Home
+  Home,
+  MessageSquare
 }
 
 export function Sidebar({ 

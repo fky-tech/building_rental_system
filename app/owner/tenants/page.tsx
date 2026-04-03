@@ -32,14 +32,19 @@ export default async function OwnerTenantsPage() {
     rent: Number(r.rent_amount)
   })) || []
 
-  // Fetch tenants who have leases in this specific building
+  // Fetch active leases in this building
   const { data: buildingLeases } = await supabase
     .from('leases')
-    .select('id, tenant_id, rooms!inner(building_id)')
+    .select('id, tenant_id, payment_due_day, rooms!inner(building_id)')
     .eq('rooms.building_id', currentBuilding?.id)
     .eq('status', 'active')
   
-  const leaseMap = new Map((buildingLeases || []).map(l => [l.tenant_id, l.id]))
+  const leaseMap = new Map(
+    (buildingLeases || []).map(l => [l.tenant_id, {
+      leaseId: l.id,
+      dueDay: l.payment_due_day,
+    }])
+  )
   const tenantIds = Array.from(leaseMap.keys())
 
   const { data: tenantsResult } = await supabase
@@ -48,10 +53,14 @@ export default async function OwnerTenantsPage() {
     .in('id', tenantIds)
     .order('full_name', { ascending: true })
 
-  const tenants = tenantsResult?.map(t => ({
-    ...t,
-    active_lease_id: leaseMap.get(t.id)
-  })) || []
+  const tenants = tenantsResult?.map(t => {
+    const leaseInfo = leaseMap.get(t.id)
+    return {
+      ...t,
+      active_lease_id: leaseInfo?.leaseId,
+      lease_due_day: leaseInfo?.dueDay,
+    }
+  }) || []
 
   return <TenantsClient tenants={tenants} roomsList={roomsList} />
 }
